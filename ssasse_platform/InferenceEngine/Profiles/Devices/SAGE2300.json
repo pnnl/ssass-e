@@ -1,0 +1,35 @@
+{
+    "MODEL": ["sage2300", "2300", "Sage-2300", "sage2300rtu", "c3413500001cd_p3"],
+    "VENDOR": ["Schneider"],
+    "DEVICE_TYPE": ["rtu"],
+    "TCP_SIG": [":0:1:16384:MNWNNT:0:1:1"],
+    "TTL": ["64"],
+    "FIRMWARE_ID": ["C3413-500-996C2"],
+    "PROTOCOLS": ["DNP3"],
+
+    "SCADA": {
+        "DNP3": {
+            "TCP": ["20000"],
+            "RESP_TO_ANY_DNP3_MASTER": ["1"],
+            "DEFAULT_ANINP_VAR": []
+        }
+    },
+    
+    "SERVICES": {
+        "FTP": {
+            "TCP": ["21"],
+            "DEFAULT_CREDS": ["Admin", "Admin"]
+        },
+        "TFTP": {
+            "TCP": ["69"],
+            "DEFAULT_CREDS": ["", "password"]
+        },
+        "HTTP": {
+            "SITE": ["Config@WEB"],
+            "TCP": ["80"],
+            "DEFAULT_CREDS": ["Admin", "Admin"]
+        }
+    },
+
+    "CVE_KEYWORDS": ["cpe:2.3:*:schneider-electric:*sage*:*:*:*:*:*:*:*:*", "sage_2300"]
+}

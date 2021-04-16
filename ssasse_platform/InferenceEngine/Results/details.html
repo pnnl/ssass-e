@@ -1,0 +1,78 @@
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="css/garretstyle.css">
+    <meta charset="utf-8">
+    <title>Details</title>
+    <meta name="description" content="The HTML5 Herald">
+    <meta name="author" content="SitePoint">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="js/flaskquery.js"></script>
+    <script type="text/javascript" src="js/Chart.js"></script>
+    <script type="text/javascript" src="js/rainbow.js"></script>
+    <script type="text/javascript" src="js/known_cves.json"></script>
+</head>
+
+<body>
+    <div class="topNav">
+        <img src="img/PNNL_Stacked_Logo_White_RGB.png" alt="PNNL_Stacked_Logo_White_RGB" class="topNavImg">
+        <a href="debug.html" id="linkDebug" class="topNavLink">DEBUG</a>
+        <a href="policy.html" id="linkPolicy" class="topNavLink">POLICY</a>
+        <a href="home.html" id="linkHome" class="topNavLink">HOME</a>
+    </div>
+
+    <div class="pageTitle"><label id="lblTitleIP"></label> - Details</div>
+
+    <div class="sectionTitle">CONNECTED DEVICES</div>
+    <table id="tableChildren" class="table">
+        <tr = class"tableRow">
+            <th class="tableHeader">Device</th>
+            <th class="tableHeader">Vendor</th>
+            <th class="tableHeader">Model</th>
+            <th class="tableHeader">Protocol</th>
+        </tr>
+    </table>
+
+    <div class="sectionTitle">VENDOR SIMILARITY CHART</div>
+    <div class="canvasDiv"><canvas id="canvasVendor"></canvas></div>
+
+    <div class="sectionTitle">DEVICE SIMILARITY CHART</div>
+    <div class="canvasDiv"><canvas id="canvasDevice"></canvas></div>
+
+    <div class="sectionTitle">VULNERABILITIES</div>
+
+    <table id="tableVulnerabilities" class="table">
+        <caption>        
+            <a href="https://nvd.nist.gov/" target="_blank" title="Link to the NVD">National Vulnerability Database</a>
+            <div id="CVEs" title="CVE Keywords used in the NVD search to find vulnerabilities">CVE Keywords</div>
+        </caption>
+        <tr class="tableRow">
+            <th class="tableHeader" title="Vulnerability number">Vulnerability #</th>
+            <th class="tableHeader" title="Vulnerability number in the NVD database or found elsewhere and a description">Description</th>
+            <th class="tableHeader" title="Threat level of the vulnerability">Severity</th>
+            <th class="tableHeader" title="Mitigations that may reduce or eliminate the threat">Suggestions</th>
+    </table>
+
+
+    <div class="sectionTitle">IDENTIFICATION TIMELINE</div>
+    <table id="tableIdentificationTimeline" class="table">
+        <tr class="tableRow">
+            <th class="tableHeader">DateTime Stamp</th>
+            <th class="tableHeader">Signature</th>
+            <th class="tableHeader">Status</th>
+            <th class="tableHeader">Info</th>
+        </tr>
+    </table>
+
+    <div class="sectionTitle">VULNERABILITY TIMELINE</div>
+    <table id="tableVulnerabilityTimeline" class="table">
+        <tr class="tableRow">
+            <th class="tableHeader">DateTime Stamp</th>
+            <th class="tableHeader">Signature</th>
+            <th class="tableHeader">Status</th>
+            <th class="tableHeader">Info</th>
+        </tr>
+    </table>
+
+    <script src="js/details.js"></script>
+</body>
+</html>

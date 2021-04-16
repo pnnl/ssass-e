@@ -1,0 +1,44 @@
+{
+    "MODEL": ["SEL351", "351", "sel_351", "sel351a", "351a", "sel_351a", "sel351arelay","0351A1R0X4E11X2", "SEL-351A_U2"],
+    "VENDOR": ["SEL"],
+    "DEVICE_TYPE": ["relay"],
+    "TCP_SIG": [":0:1:8688:MNWNNSNNT:0:1:1", ":1:1:8688:MNWNNSNNT:0:1:1"],
+    "TTL": ["64"],
+    "FIRMWARE_ID": ["SEL-351A-1-R515-V0-Z105104-D20130620", "SEL-351A-1-R516-V0-Z106105-D20150202"],
+    
+    "SCADA": {
+        "DNP3": {
+            "TCP": ["20000"],
+            "UDP": ["20000"],
+            "DEFAULT_ANINP_VAR": ["04"],
+            "RESP_TO_ANY_DNP3_MASTER": ["1"]
+        },
+
+        "MODBUS": {
+            "TCP": ["502"]
+        }
+    },
+
+    "SERVICES": {
+            "FTP": {
+                "TCP": ["20"],
+                "DEFAULT_CREDS": ["FTPUSER", ""]
+            },
+            "TCP/IP": {
+                "TCP": ["102"]
+            }
+        },
+
+    "TCP": {
+        "TTL": ["64"], 
+        "WINDOW": ["8688"], 
+        "MSS": ["1460"],
+        "SCALE": ["1"], 
+        "SACK": ["Y"], 
+        "TIMESTAMP": ["Y"], 
+        "RESPONSES": ["1", "2", "3", "4"], 
+        "ACK": ["Y"]
+    },
+
+    "CVE_KEYWORDS": ["cpe:2.3:*:selinc:sel-351:*:*:*:*:*:*:*", "sel-351"]
+}

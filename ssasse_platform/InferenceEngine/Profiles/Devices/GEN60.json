@@ -1,0 +1,41 @@
+{
+    "MODEL": ["GEN60", "N60", "Multilin N60"],
+    "VENDOR": ["GE"],
+    "DEVICE_TYPE": ["relay"],
+    "TCP_SIG": [":0:1:4096:M:N:N:N"],
+    "FIRMWARE_ID": [6.01],
+    "TTL": ["30"], 
+    "WINDOW": ["4096"], 
+    "MSS": ["1460"], 
+    "SCALE": ["1"], 
+    "SACK": ["1"], 
+    "TIMESTAMP": ["1"], 
+    "RESPONSES": ["1"], 
+    "ACK": ["N"],
+    "PROTOCOLS": ["DNP3"],
+
+    "SCADA": {
+        "MODBUS": {
+            "TCP": ["254"]
+        },
+        "IEC61850": {
+            "TCP": ["102"]
+        },
+        "C37.118": {
+            "TCP": [],
+            "UDP": []
+        },
+        "DNP3": {
+            "UDP": [],
+            "TCP": ["20000"],
+            "RESP_TO_ANY_DNP3_MASTER": ["1"],
+            "DEFAULT_ANINP_VAR": ["01"]
+        }
+    },
+    
+    "SERVICES": {
+
+    },
+
+    "CVE_KEYWORDS": ["cpe:2.3:*:ge:*n60*:*:*:*:*:*:*:*:*"]
+}

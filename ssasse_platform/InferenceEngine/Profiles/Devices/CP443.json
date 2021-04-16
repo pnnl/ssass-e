@@ -1,0 +1,18 @@
+{
+    "MODEL": ["SIMATIC S7 CP", "CP 443-1 RNA", "SIMATIC NET CA CP443-1 RNA"],
+    "VENDOR": ["SIEMENS"],
+    "DEVICE_TYPE": ["Industrial Internet", "RNA"],
+    "FIRMWARE_ID": ["V1.4.1"],
+    "MODULE_NAME": ["ROS5Cp", "R1S5Cp"],
+    
+    "SCADA": {
+    },
+
+    "SERVICES": {
+        "HTTP": {
+            "TCP": ["80"]
+        }
+        },
+
+        "CVE_KEYWORDS": ["cpe:2.3:h:siemens:simatic_cp_443*:-:*:*:*:*:*:*:*"]
+}

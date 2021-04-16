@@ -1,0 +1,37 @@
+{
+    "MODEL": ["SEL735", "735", "sel_735", "sel735a", "735a", "sel_735a", "sel735arelay"],
+    "VENDOR": ["SEL"], 
+    "DEVICE_TYPE": ["relay"],
+    "FIRMWARE_ID": ["SEL-735-5-R305-V0-Z013012-D20110331"],
+    "PROTOCOLS": ["DNP3"],
+
+    "SCADA": {
+        "DNP3": {
+            "TCP": ["20000"],
+            "UDP": ["20000"]
+        },
+        "MODBUS": {
+            "TCP": ["502"]
+        }
+    },
+    
+    "SERVICES": {
+        "FTP": {
+            "TCP": ["21"],
+            "DEFAULT_CREDS": ["FTPUSER", ""]
+        }
+    },
+        
+    "TCP": {
+        "TTL": ["64"], 
+        "WINDOW": ["8688"], 
+        "MSS": ["1460"], 
+        "SCALE": ["1"], 
+        "SACK": ["Y"], 
+        "TIMESTAMP": ["Y"], 
+        "RESPONSES": ["1"], 
+        "ACK": ["Y"]
+    },
+
+    "CVE_KEYWORDS": ["cpe:2.3:*:selinc:sel-735:*:*:*:*:*:*:*", "sel-735"]
+}

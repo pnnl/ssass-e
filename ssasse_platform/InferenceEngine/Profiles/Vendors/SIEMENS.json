@@ -1,0 +1,23 @@
+{
+    "VENDOR": ["SIEMENS", "Siemens AG", "SIEMENS AG", "Siemens Aktiengesellschaft", "Siemens"],
+    
+    "SCADA": {
+        "IEC61850": {
+            "TCP": ["102"]
+        }
+    },
+    
+    "SERVICES": {
+        "FTP": {
+            "TCP": ["21"]
+        },
+        "HTTP": {
+            "TCP": []
+        },
+        "SNTP": {
+            "UDP": ["123"]
+        } 
+    },
+
+    "CVE_KEYWORDS": ["cpe:2.3:*:siemens:*:*:*:*:*:*:*:*:*", "siemens"]
+}

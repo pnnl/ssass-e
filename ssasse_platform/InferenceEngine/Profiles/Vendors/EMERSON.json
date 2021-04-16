@@ -1,0 +1,14 @@
+{
+    "VENDOR": ["Emerson", "spectra", "Bristol", "bristolb", "BRISTOLBABCOCK", "EmersonProcessRAS"],
+    "SCADA": {
+        "MODBUS": {
+            "TCP": ["502"]
+        }
+    },
+    
+    "SERVICES": {
+
+    },
+
+    "CVE_KEYWORDS": ["cpe:2.3:*:emerson:*:*:*:*:*:*:*:*:*", "emerson"]
+}

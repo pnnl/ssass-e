@@ -1,0 +1,37 @@
+{
+    "V_01": {
+        "DESCRIPTION": ["FTP service allows anonymous connection access."],
+        "SEVERITY": ["High"],
+        "SUGGESTIONS": ["Please add autentication to FTP service."]
+    },
+    "V_02": {
+        "DESCRIPTION": ["HTTP service allows anonymous connection access."],
+        "SEVERITY": ["High"],
+        "SUGGESTIONS": ["Please add autentication to HTTP service."]
+    },
+    "V_03": {
+        "DESCRIPTION": ["TELNET service allows anonymous connection access."],
+        "SEVERITY": ["High"],
+        "SUGGESTIONS": ["Please add autentication to TELNET service."]
+    },
+    "V_04": {
+        "DESCRIPTION": ["FTP service uses default credentials."],
+        "SEVERITY": ["Medium"],
+        "SUGGESTIONS": ["Please change to non-default credentials."]
+    },
+    "V_05": {
+        "DESCRIPTION": ["HTTP service uses default credentials."],
+        "SEVERITY": ["Medium"],
+        "SUGGESTIONS": ["Please change to non-default credentials."]
+    },
+    "V_06": {
+        "DESCRIPTION": ["TELNET service uses default credentials."],
+        "SEVERITY": ["Medium"],
+        "SUGGESTIONS": ["Please change to non-default credentials."]
+    },
+    "V_07": {
+        "DESCRIPTION": ["Device responds to scanner IP address as DNP3 master. This could indicate that the device is open to any DNP3 master."],
+        "SEVERITY": ["Medium"],
+        "SUGGESTIONS": ["You may want to limit the IP addresses that can act as DNP3 masters for this device."]
+    }
+}

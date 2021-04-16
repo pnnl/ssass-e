@@ -1,0 +1,1 @@
+{"default": {"scans": []}, "172.17.0.0/24": {"scans": ["config_scan", "network_scan", "tcp_scan", "scada_scan"]}}

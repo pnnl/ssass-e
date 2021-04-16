@@ -1,0 +1,14 @@
+{
+    "VENDOR": ["redlionc", "emersonprocessmgmt", "bristolbabcock", "redlioninc"],
+    "SCADA": {
+        "MODBUS": {
+            "TCP": ["502"]
+        }
+    },
+    
+    "SERVICES": {
+
+    },
+
+    "CVE_KEWYWORDS": ["cpe:2.3:*:emerson:*:*:*:*:*:*:*:*:*", "emerson"]
+}

@@ -1,0 +1,61 @@
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="css/garretstyle.css">
+    <meta charset="utf-8">
+    <title>Home</title>
+    <meta name="description" content="The HTML5 Herald">
+    <meta name="author" content="SitePoint">
+    <script type="text/javascript" src="js/flaskquery.js"></script>
+</head>
+
+<body>
+    <div class="topNav">
+        <img src="img/PNNL_Stacked_Logo_White_RGB.png" alt="PNNL_Stacked_Logo_White_RGB" class="topNavImg">
+        <label class="topNavInfo">Status: <label id="lblStatus"></label> | </label>
+        <label class="topNavInfo">Runtime: <label id="lblRuntime"></label> | </label>
+        <button class="topNavButton" id="btnStart">START</button>
+        <button class="topNavButton" id="btnStop">STOP</button>
+        <button class="topNavButton" id="btnRestart">RESTART</button>
+        <a href="notifications.html" id="aNotifications" target="popup" onclick = "window.open('notifications.html', 'popup', 'width=600,height=400'); return false;" class="topNavLink">NOTIFICATIONS</a>
+        <a href="debug.html" class="topNavLink">DEBUG</a>
+        <a href="policy.html" class="topNavLink">POLICY</a>
+        <a href="home.html" class="topNavLinkActive">HOME</a>
+    </div>
+
+    <div class="pageTitle">Inference Engine Results</div>
+
+    <div class="sectionTitle">AGGREGATE SUMMARY</div>    
+    <div class="sectionBody">
+    <div class="sectionRow">
+        <div class="sectionColumn">
+            <div>Total Devices: <label id="lblTotalDevices"></label></div>
+            <div>Unidentified: <label id="lblUnidentifiedDevices"></label></div>
+            <div>Identified: <label id="lblIdentifiedDevices"></label></div>
+        </div>
+        <div class="sectionColumn">
+            <div>Total Vulnerabilities: <label id="lblTotalVulnerabilities"></label></div>
+            <div>Low: <label class="vulnLow" id="lblLowVulnerabilities"></label></div>
+            <div>Medium: <label class="vulnMed" id="lblMediumVulnerabilities"></label></div>
+            <div>High: <label class="vulnHigh" id="lblHighVulnerabilities"></label></div>
+        </div>
+    </div>
+    </div>
+
+    <div class="sectionTitle">DEVICE TABLE</div>
+    <table id="tableSummary" class="table">
+        <tr class="tableRow">
+            <th class="tableHeader">Device IP</th>
+            <th class="tableHeader">Vendor</th>
+            <th class="tableHeader">Model</th>
+            <th class="tableHeader">Firmware</th>
+            <th class="tableHeader">Device Type</th>
+            <th class="tableHeader">High Vulns</th>
+            <th class="tableHeader">Medium Vulns</th>
+            <th class="tableHeader">Low Vulns</th>
+            <th class="tableHeader">Details</th>
+        </tr>
+    </table>
+
+    <script src="js/home.js"></script>
+</body>
+</html>

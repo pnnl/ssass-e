@@ -1,0 +1,16 @@
+{
+    "MODEL": ["SIPROTEC", "SIPROTEC 7SJ64", "SIPROTEC Multi-Functional Protectiv Relays 7SJ64", "Multi-Functional Protectiv Relays",  "Multi-Functional Protectiv Relays 7SJ64", "SIE7SJ64", "7SJ64", "sie_7SJ64", "sie7SJ64"],
+    "VENDOR": ["Siemens"],
+    "DEVICE_TYPE": ["relay"],
+    "FIRMWARE_ID": ["4.92.03"],
+    
+    "SCADA": {
+
+    },
+
+    "SERVICES": {
+
+        },
+
+    "CVE_KEYWORDS": ["cpe:2.3:a:siemens:siprotec*:*:*:*:*:*:*:*:*", "siprotec"]
+}

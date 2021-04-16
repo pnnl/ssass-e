@@ -1,0 +1,63 @@
+{
+    "MODEL": 1000.0,
+    "VENDOR": 20.0,
+    "FIRMWARE_ID": 100.0,
+    "SN": 5.0,
+    "BOOT_LOADER": 1.0,
+    
+    "SCADA": {
+        "DNP3": {
+            "PORTS": 1.0,
+            "FUNCTION_CODES": 1.0
+        },
+        "IEC61850": {
+            "PORTS": 1.0
+        },
+        "IEC60870": {
+            "PORTS": 1.0 
+        },
+        "SEL_PROTOCOLS": {
+            "PORTS": 1.0 
+        },
+        "C37.118": {
+            "PORTS": 1.0
+        }
+    },
+    
+    "SERVICES": {
+        "FTP": {
+            "PORTS": 1.0
+        },
+        "TELNET": {
+            "PORTS": 1.0 
+        },
+        "HTTP": {
+            "PORTS": 1.0
+        },
+        "FAST": {
+            "PORTS": 1.0,
+            "FUNCTION_CODES": 1.0
+        },
+        "NTP/SNTP": {
+            "PORTS": 1.0
+        }
+    },
+    
+    "TCP": {
+        "TTL": 1.0,
+        "WINDOW": 1.0,
+        "MSS": 1.0,
+        "SCALE": 1.0,
+        "SACK": 1.0,
+        "TIMESTAMP": 1.0, 
+        "RESPONSES": 1.0, 
+        "ACK": 1.0
+    },
+        
+    "MIRRORED_BITS": {
+        "PORTS": 1.0
+    },
+    "EIA-232": {
+        "PORTS": 1.0
+    }
+}

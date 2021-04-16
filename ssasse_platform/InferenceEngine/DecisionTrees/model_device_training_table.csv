@@ -1,0 +1,145 @@
+﻿Model,config_scan,network_scan,Firmware,DECISION
+sel rtac,empty,empty,empty,RTAC_RTU_get_Device_info
+sel 351,empty,empty,empty,SEL_get_Device_info
+sel 451,empty,empty,empty,SEL_get_Device_info
+sel rtac,empty,empty,empty,RTAC_RTU_get_Device_info
+sel 351,empty,empty,empty,SEL_get_Device_info
+sel 451,empty,empty,empty,SEL_get_Device_info
+ged20,empty,empty,empty,D20_RTU_get_device_info
+ged30,empty,empty,empty,GE_Relay_get_DeviceInfo
+gen60,empty,empty,empty,GE_Relay_get_DeviceInfo
+gel90,empty,empty,empty,GE_Relay_get_DeviceInfo
+ged20,empty,empty,empty,D20_RTU_get_device_info
+ged30,empty,empty,empty,GE_Relay_get_DeviceInfo
+gen60,empty,empty,empty,GE_Relay_get_DeviceInfo
+gel90,empty,empty,empty,GE_Relay_get_DeviceInfo
+roc800,empty,empty,empty,ROC_get_DeviceInfo
+controlwave,empty,empty,empty,CWETH_get_DeviceInfo
+fb107,empty,empty,empty,ROC_get_DeviceInfo
+sage2300,empty,empty,empty,SAGE_Relay_get_DeviceInfo
+sel rtac,yes,empty,empty,network_scan
+sel 351,yes,empty,empty,network_scan
+sel 451,yes,empty,empty,network_scan
+sel rtac,yes,empty,empty,network_scan
+sel 351,yes,empty,empty,network_scan
+sel 451,yes,empty,empty,network_scan
+ged20,yes,empty,empty,network_scan
+ged30,yes,empty,empty,network_scan
+gen60,yes,empty,empty,network_scan
+gel90,yes,empty,empty,network_scan
+ged20,yes,empty,empty,network_scan
+ged30,yes,empty,empty,network_scan
+gen60,yes,empty,empty,network_scan
+gel90,yes,empty,empty,network_scan
+roc800,yes,empty,empty,network_scan
+controlwave,yes,empty,empty,network_scan
+fb107,yes,empty,empty,network_scan
+sage2300,no,empty,empty,network_scan
+sel rtac,no,empty,empty,network_scan
+sel 351,no,empty,empty,network_scan
+sel 451,no,empty,empty,network_scan
+sel rtac,no,empty,empty,network_scan
+sel 351,no,empty,empty,network_scan
+sel 451,no,empty,empty,network_scan
+ged20,no,empty,empty,network_scan
+ged30,no,empty,empty,network_scan
+gen60,no,empty,empty,network_scan
+gel90,no,empty,empty,network_scan
+ged20,no,empty,empty,network_scan
+ged30,no,empty,empty,network_scan
+gen60,no,empty,empty,network_scan
+gel90,no,empty,empty,network_scan
+roc800,no,empty,empty,network_scan
+controlwave,no,empty,empty,network_scan
+fb107,no,empty,empty,network_scan
+sage2300,no,empty,empty,network_scan
+sel rtac,yes,empty,yes,Done
+sel 351,yes,empty,yes,Done
+sel 451,yes,empty,yes,Done
+sel rtac,yes,empty,yes,Done
+sel 351,yes,empty,yes,Done
+sel 451,yes,empty,yes,Done
+ged20,yes,empty,yes,Done
+ged30,yes,empty,yes,Done
+gen60,yes,empty,yes,Done
+gel90,yes,empty,yes,Done
+ged20,yes,empty,yes,Done
+ged30,yes,empty,yes,Done
+gen60,yes,empty,yes,Done
+gel90,yes,empty,yes,Done
+roc800,yes,empty,yes,Done
+controlwave,yes,empty,yes,Done
+fb107,yes,empty,yes,Done
+sage2300,yes,empty,yes,Done
+sel rtac,no,yes,yes,Done
+sel 351,no,yes,yes,Done
+sel 451,no,yes,yes,Done
+sel rtac,no,yes,yes,Done
+sel 351,no,yes,yes,Done
+sel 451,no,yes,yes,Done
+ged20,no,yes,yes,Done
+ged30,no,yes,yes,Done
+gen60,no,yes,yes,Done
+gel90,no,yes,yes,Done
+ged20,no,yes,yes,Done
+ged30,no,yes,yes,Done
+gen60,no,yes,yes,Done
+gel90,no,yes,yes,Done
+roc800,no,yes,yes,Done
+controlwave,no,yes,yes,Done
+fb107,no,yes,yes,Done
+sage2300,no,yes,yes,Done
+sel rtac,yes,yes,yes,Done
+sel 351,yes,yes,yes,Done
+sel 451,yes,yes,yes,Done
+sel rtac,yes,yes,yes,Done
+sel 351,yes,yes,yes,Done
+sel 451,yes,yes,yes,Done
+ged20,yes,yes,yes,Done
+ged30,yes,yes,yes,Done
+gen60,yes,yes,yes,Done
+gel90,yes,yes,yes,Done
+ged20,yes,yes,yes,Done
+ged30,yes,yes,yes,Done
+gen60,yes,yes,yes,Done
+gel90,yes,yes,yes,Done
+roc800,yes,yes,yes,Done
+controlwave,yes,yes,yes,Done
+fb107,yes,yes,yes,Done
+sage2300,yes,yes,yes,Done
+sel rtac,yes,no,empty,Unknown
+sel 351,yes,no,empty,Unknown
+sel 451,yes,no,empty,Unknown
+sel rtac,yes,no,empty,Unknown
+sel 351,yes,no,empty,Unknown
+sel 451,yes,no,empty,Unknown
+ged20,yes,no,empty,Unknown
+ged30,yes,no,empty,Unknown
+gen60,yes,no,empty,Unknown
+gel90,yes,no,empty,Unknown
+ged20,yes,no,empty,Unknown
+ged30,yes,no,empty,Unknown
+gen60,yes,no,empty,Unknown
+gel90,yes,no,empty,Unknown
+roc800,yes,no,empty,Unknown
+controlwave,yes,no,empty,Unknown
+fb107,yes,no,empty,Unknown
+sage2300,yes,no,empty,Unknown
+sel rtac,no,no,empty,Unknown
+sel 351,no,no,empty,Unknown
+sel 451,no,no,empty,Unknown
+sel rtac,no,no,empty,Unknown
+sel 351,no,no,empty,Unknown
+sel 451,no,no,empty,Unknown
+ged20,no,no,empty,Unknown
+ged30,no,no,empty,Unknown
+gen60,no,no,empty,Unknown
+gel90,no,no,empty,Unknown
+ged20,no,no,empty,Unknown
+ged30,no,no,empty,Unknown
+gen60,no,no,empty,Unknown
+gel90,no,no,empty,Unknown
+roc800,no,no,empty,Unknown
+controlwave,no,no,empty,Unknown
+fb107,no,no,empty,Unknown
+sage2300,no,no,empty,Unknown

@@ -1,0 +1,59 @@
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="css/garretstyle.css">
+    <meta charset="utf-8">
+    <title>Debug Information</title>
+    <meta name="description" content="The HTML5 Herald">
+    <meta name="author" content="SitePoint">
+    <script type="text/javascript" src="js/flaskquery.js"></script>
+</head>
+
+<body>
+    <div class="topNav">
+        <img src="img/PNNL_Stacked_Logo_White_RGB.png" alt="PNNL_Stacked_Logo_White_RGB" class="topNavImg">
+        <a href="debug.html" class="topNavLink">DEBUG</a>
+        <a href="policy.html" class="topNavLink">POLICY</a>
+        <a href="home.html" class="topNavLink">HOME</a>
+    </div>
+
+    <div class="pageTitle">Debug</div>
+
+    <div id="deviceTitle" class="sectionTitle">Device Debug Information<!--<input id="search" type="text" placeholder="device search ...">--> </div>
+   
+    <div class="sectionBody">
+        <div class="sectionRow">
+            <div id="device">Device: <label id="lblDevice"></label></div>
+                <div class="sectionColumn1">
+                    <div>Evidence: <label id="lblEvidence"></label>
+                    <ul>
+                        <li>Model: <label id="lblModel"></label></li>
+                        <li>Vendor: <label id="lblVendor"></label></li>
+                        <li>Protocols: <label id="lblProtocols"></label></li>
+                    </ul></div>
+
+                    <div>Decisions: <label id="lblDecisions"></label>
+                    <ul>
+                        <li>ID: <label id="lblDecisionID"></label></li>
+                        <li>Outcome: <label id="lblDecisionOutcome"></label></li>
+                    </ul></div>
+                </div>
+
+                <div class="sectionColumn2">
+                    <div>Errors: <label id="lblErrors"></label>
+                        <ul>
+                            <li>ID: <label id="lblErrorsID"></label></li>
+                            <li>Outcome: <label id="lblErrorsOutcome"></label></li>
+                        </ul></div>
+
+                    <div>Scans: <label id="lblScans"></label>
+                        <ul>
+                            <li>Scan Name: <label id="lblScanName"></label></li>
+                            <li>Scan Result: <label id="lblScanResult"></label></li>
+                            <li>Scan Description: <label id="lblScanDescription"></label></li>
+                        </ul></div>
+                </div>
+            </div>
+    </div>
+    <script src="js/debug.js"></script>
+</body>
+</html>

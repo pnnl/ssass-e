@@ -1,0 +1,119 @@
+{
+    "config_scan":
+    {
+        "EMERSON":
+        {
+            "ROC_get_DeviceInfo": {"PRIORITY": "0", "TYPE": ["identification"], "DEVICE_TYPE": "relay", "PARAMS": {"TARGET_IPADDR": ""}}
+        },
+        "REDLIONINC":
+        {
+            "CWETH_get_DeviceInfo": {"PRIORITY": "0", "TYPE": ["identification"], "DEVICE_TYPE": "relay", "PARAMS": {"TARGET_IPADDR": ""}}
+        },
+        "GE":
+        {
+            "GE_Relay_get_DeviceInfo": {"PRIORITY": "0", "TYPE": ["identification"], "DEVICE_TYPE": "relay", "PARAMS": {"TARGET_IPADDR": ""}},
+            "GE_get_IPConfig": {"PRIORITY": "0", "TYPE": ["vulnerability"], "PARAMS": {"TARGET_IPADDR": ""}},
+            "GE_get_SCADAConfig": {"PRIORITY": "0", "TYPE": ["vulnerability"], "PARAMS": {"TARGET_IPADDR": ""}},
+            "D20_RTU_get_device_info": {"PRIORITY": "0", "TYPE": ["identification"], "DEVICE_TYPE": "rtu", "PARAMS": {"TARGET_IPADDR": ""}}
+        },
+        "SEL":
+        {
+            "SEL_Relay_get_DeviceInfo": {"PRIORITY": "0", "TYPE": ["identification"], "DEVICE_TYPE": "relay", "PARAMS": {"TARGET_IPADDR": "", "TARGET_PORT": "23"}},
+            "RTAC_RTU_get_Device_info": {"PRIORITY": "0", "TYPE": ["identification"], "DEVICE_TYPE": "rtu", "PARAMS": {"TARGET_IPADDR": "", "DEFAULT_CREDS": ""}}
+        },
+        "SCHNEIDER":
+        {
+            "SAGE_Relay_get_DeviceInfo": {"PRIORITY": "0", "TYPE": ["identification"], "PARAMS": {"TARGET_IPADDR": ""}}
+        },
+        "LANTRONIX":
+        {
+            "Lantronix_get_DeviceInfo": {"PRIORITY": "0", "TYPE": ["identification"], "DEVICE_TYPE": "port_server", "PARAMS": {"TARGET_IPADDR": ""}}
+        }
+    },
+
+    "network_scan":
+    {
+        "telnet":
+        {
+            "telnet_grab_banner": {"PRIORITY": "0", "TYPE": ["identification"], "PARAMS": {"TARGET_IPADDR": "", "TARGET_PORT": "23"}},
+            "TELNET_default_cred_Check": {"PRIORITY": "0", "TYPE": ["vulnerability"], "PARAMS": {"TARGET_IPADDR": "", "TARGET_PORT": "", "VENDOR": "", "DEFAULT_CREDS": ["", ""]}}
+        },
+        "ftp":
+        {
+            "FTP_default_cred_Check": {"PRIORITY": "0", "TYPE": ["vulnerability"], "PARAMS": {"TARGET_IPADDR": "", "TARGET_PORT": "", "DEFAULT_CREDS": ["", ""]}}
+        },
+        "http":
+        {
+            "SEL_HTTP_default_credential_Check": {"PRIORITY": "0", "TYPE": ["vulnerability"], "PARAMS": {"TARGET_IPADDR": "", "DEFAULT_CREDS": ["",""]}},
+            "HTTP_default_credential_Check": {"PRIORITY": "0", "TYPE": ["vulnerability"], "PARAMS": {"TARGET_IPADDR": "", "TARGET_PORT": "", "VENDOR": "", "DEFAULT_CREDS": ["",""]}},
+            "scrape_http_server": {"PRIORITY": "0", "TYPE": ["identification"], "PARAMS": {"TARGET_IPADDR": "", "TARGET_PORT": "80"}},
+            "http_TCP_header_probe": {"PRIORITY": "1", "TYPE": ["identification"], "PARAMS": {"TARGET_IPADDR": ""}}
+        },
+        "https":
+        {
+            "scrape_https_server": {"PRIORITY": "0", "TYPE": ["identification"], "PARAMS": {"TARGET_IPADDR": "", "TARGET_PORT": "443"}}
+        },
+        "nmap":
+        {
+            "nmap_enip_enumerate_scan": {"PRIORITY": "0", "TYPE": ["vulnerability"], "PARAMS": {"TARGET_IPADDR": ""}},
+            "nmap_bacnet_discover_enumerate_scan": {"PRIORITY": "0", "TYPE": ["vulnerability"], "PARAMS": {"TARGET_IPADDR": ""}},
+            "nmap_s7_enumerate_scan": {"PRIORITY": "0", "TYPE": ["vulnerability"], "PARAMS": {"TARGET_IPADDR": ""}},
+            "nmap_codesys_v2_discover_scan": {"PRIORITY": "0", "TYPE": ["vulnerability"], "PARAMS": {"TARGET_IPADDR": ""}},
+            "nmap_fox_info_scan": {"PRIORITY": "0", "TYPE": ["vulnerability"], "PARAMS": {"TARGET_IPADDR": ""}},
+            "nmap_modicon_info_scan": {"PRIORITY": "0", "TYPE": ["vulnerability"], "PARAMS": {"TARGET_IPADDR": ""}},
+            "nmap_omron_tcp_scan": {"PRIORITY": "0", "TYPE": ["vulnerability"], "PARAMS": {"TARGET_IPADDR": ""}},
+            "nmap_omron_udp_scan": {"PRIORITY": "0", "TYPE": ["vulnerability"], "PARAMS": {"TARGET_IPADDR": ""}},
+            "nmap_pcworx_info_scan": {"PRIORITY": "0", "TYPE": ["vulnerability"], "PARAMS": {"TARGET_IPADDR": ""}},
+            "nmap_proconos_info_scan": {"PRIORITY": "0", "TYPE": ["vulnerability"], "PARAMS": {"TARGET_IPADDR": ""}},
+            "nmap_custom_scan": {"PRIORITY": "0", "TYPE": ["vulnerability"], "PARAMS": {"TARGET_IPADDR": "", "NMAP_CUSTOM_SCAN_PORTS": "", "TARGET_PORTS": ""}},
+            "nmap_arp_ping_scan": {"PRIORITY": "0", "TYPE": ["identification", "vulnerability"], "PARAMS": {"TARGET_IPADDR": ""}},
+            "nmap_banner_grab_scan": {"PRIORITY": "0", "TYPE": ["vulnerability"], "PARAMS": {"TARGET_IPADDR": "", "NMAP_CUSTOM_SCAN_PORTS": ""}},
+            "nmap_service_scan": {"PRIORITY": "0", "TYPE": ["vulnerability"], "PARAMS": {"TARGET_IPADDR": "", "TARGET_PORTS": ""}},
+            "nmap_TCP_UDP_ping_scan": {"PRIORITY": "0", "TYPE": ["identification"], "PARAMS": {"TARGET_IPADDR": ""}}
+        },
+        "ssl":
+        {
+            "get_ssl_cert": {"PRIORITY": "0", "TYPE": ["identification"], "PARAMS": {"TARGET_IPADDR": "", "TARGET_PORT": ""}}
+        },
+        "snmp":
+        {
+            "snmp_device_info": {"PRIORITY": "0", "TYPE": ["identification"], "PARAMS": {"TARGET_IPADDR": ""}}
+        },
+        "database":
+        {
+            "RTAC_get_db_device_info": {"PRIORITY": "0", "TYPE": ["identification"], "PARAMS": {"TARGET_IPADDR": "", "DEFAULT_CREDS": ["",""]}}
+        }
+    },
+
+    "tcp_scan":
+    {
+        "dnp3":
+        {
+            "dnp3_TCP_header_probe": {"PRIORITY": "2", "TYPE": ["identification"], "PARAMS": {"TARGET_IPADDR": ""}}
+        },
+        "modbus":
+        {
+            "modbus_TCP_header_probe": {"PRIORITY": "0", "TYPE": ["identification"], "PARAMS": {"TARGET_IPADDR": ""}}
+        },
+        "rocplus":
+        {
+            "ROC_get_DeviceInfo": {"PRIORITY": "0", "TYPE": ["identification"], "PARAMS": {"TARGET_IPADDR": ""}}
+        },
+        "http":
+        {
+            "http_TCP_header_probe": {"PRIORITY": "0", "TYPE": ["identification"], "PARAMS": {"TARGET_IPADDR": ""}}
+        }
+    },
+
+    "scada_scan":
+    {
+        "dnp3":
+        {
+            "dnp3_read_device_attributes": {"PRIORITY": "0", "TYPE": ["identification"], "PARAMS": {"TARGET_IPADDR": "", "DNP3_MASTER_ID": "", "DNP3_SLAVE_ID": "", "DNP3_PORT": ""}},
+            "dnp3_request_link_status": {"PRIORITY": "2", "TYPE": ["identification", "vulnerability"], "PARAMS": {"TARGET_IPADDR": "", "DNP3_PORT": "", "DNP3_MASTER_ID": "", "DNP3_SLAVE_ID": ""}}
+        },
+        "modbus":
+        {
+        }
+    }
+}

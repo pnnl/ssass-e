@@ -1,0 +1,23 @@
+{
+    "MODEL": ["MS-NAE5510-1"],
+    "VENDOR": ["JCI", "Arcom Control Systems"],
+    "DEVICE_TYPE": ["BAS"],
+    "TCP_SIG": [":1:1:128:65535:MNWNNTNNS:0:0:0"],
+    "FIRMWARE_ID": ["8.0.0.0449"],
+    "PROTOCOLS": ["BACnet"],
+
+    "SCADA": {
+        "BACnet": {
+            "UDP": ["47808"],
+            "VENDOR_ID": ["5"]
+        },
+    },
+
+    "SERVICES": {
+        "HTTP": {
+            "TCP": ["80"]
+        },
+    }
+}
+
+

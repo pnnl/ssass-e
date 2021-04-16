@@ -1,0 +1,8 @@
+{
+    "MODEL": ["floboss1075031xxorregfloversion1.xx", "fb107", "floboss107", "W68182Ver1.81", "FloBoss 107/503/1xx or RegFlo version 1.xx"],
+    "DEVICE_TYPE": ["relay"],
+    "TCP_SIG": [":0:1:4096:M:N:N:N"],
+    "TTL": ["128"],
+    "VENDOR": ["Emerson"]
+    "CVE_KEYWORDS": ["cpe:2.3:h:emerson:floboss:*:*:*:*:*:*:*:*", "emerson floboss"]
+}

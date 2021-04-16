@@ -1,0 +1,6 @@
+{
+    "tenable_ip": "x.x.x.x",
+    "tenable_username": "foo",
+    "tenable_password": "bar",
+    "scanning_interface": "eth0"
+}

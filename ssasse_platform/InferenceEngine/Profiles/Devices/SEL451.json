@@ -1,0 +1,37 @@
+{
+    "MODEL": ["04515611XB4X4H324XXXX", "SEL451", "451", "sel_451", "sel451a", "451a", "sel_451a", "sel451arelay", "04515611XC0X1H1XXXXXX", "SEL4515RELAY"],
+    "VENDOR": ["SEL"], 
+    "DEVICE_TYPE": ["relay"],
+    "TCP_SIG": [":0:1:8688:MNWNNSNNT:0:1:1", ":1:1:8688:MNWNNSNNT:0:1:1"],
+    "TTL": ["64"],
+    "FIRMWARE_ID": ["SEL-451-5-R305-V0-Z013012-D20110331"],
+    "SN": ["1.1E+09"],
+    "BOOT_LOADER": ["SLBT-4XX-R205-V0-Z001002-D20100128"],
+    
+    "SCADA": {
+        "DNP3": {
+            "TCP": ["20000"],
+            "UDP": ["20000"],
+            "FUNCTION_CODES": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "13", "14", "20", "21", "23"],
+            "DEFAULT_ANINP_VAR": ["02"],
+            "RESP_TO_ANY_DNP3_MASTER": ["1"]
+        }
+    },
+    
+    "SERVICES": {
+
+    },
+    
+    "TCP": {
+        "TTL": ["64"], 
+        "WINDOW": ["8688"], 
+        "MSS": ["1460"], 
+        "SCALE": ["1"], 
+        "SACK": ["Y"], 
+        "TIMESTAMP": ["Y"], 
+        "RESPONSES": ["1"], 
+        "ACK": ["Y"]
+    },
+
+    "CVE_KEYWORDS": ["cpe:2.3:*:selinc:sel-451:*:*:*:*:*:*:*", "sel-451"]
+}
