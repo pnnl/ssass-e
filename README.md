@@ -705,14 +705,14 @@ The three main pages of the SSASS-E webpage are the Home page, Details page (per
 
 * Includes high level details such as vendor, model, firmware, etc.
 
-![dtable](images/device_table.png){width=60%}
+![dtable](images/device_table.png)
 
 ### Details page
 
 Each entry on the Device table will have a button that opens a new page to that IP’s Details page.
 
 
-![details](images/details_device_table.png){width=60%}
+![details](images/details_device_table.png)
 
 The details page will include, if available through inference:
 
@@ -723,17 +723,17 @@ The details page will include, if available through inference:
 * Identification and Vulnerability Timelines
 
 
-![details](images/details.png){width=60%}
+![details](images/details.png)
 
 ### Policy page
 
 From the Home page, clicking the POLICY button in the top right will open the Policy page
 
-![policy](images/policy.png){width=60%}
+![policy](images/policy.png)
 
 It will show the IP vs Scan policy table
 
-![dpolicy](images/policy_details.png){width=60%}
+![dpolicy](images/policy_details.png)
 
 
 ## Troubleshooting
