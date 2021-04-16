@@ -1,0 +1,33 @@
+{
+    "MODEL": ["SEL3530", "3530", "sel_3530", "sel3530", "SEL-3530", "sel3530rtac"],
+    "VENDOR": ["SEL"],
+    "DEVICE_TYPE": ["rtu"],
+    "TCP_SIG": [":1:0:28960:MSTNW:7:1:1"],
+    "TTL": ["64"],
+    "FIRMWARE_ID": ["SEL-3530-R145-V0-Z000001-D20190830"],
+    
+    "SCADA": {
+        "DNP3": {
+            "TCP": ["20000"],
+            "UDP": ["20000"],
+            "MULTIPLE_ANINP_OBJ": ["1"]
+        },
+        "MODBUS": {
+            "TCP": ["502"]
+        }
+    },
+
+    "Services": {
+            "TELNET": {
+                "DEFAULT_CREDS": [["admin", "TAIL"], ["engineer", "OTTER"]]
+            },
+            "HTTP":  {
+                "TCP": ["443"]
+            },
+            "Syslog": {
+                "UDP": ["514"]
+            }
+        },
+
+    "CVE_KEYWORDS": ["cpe:2.3:h:selinc:sel-3530:*:*:*:*:*:*:*", "sel-3530"]
+}

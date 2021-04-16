@@ -1,0 +1,43 @@
+{
+    "MODEL": ["GEL90", "L90", "L90-N03-HKH-F8N-H6A-L6G-NXX-SXX-UXX"],
+    "VENDOR": ["GE"],
+    "DEVICE_TYPE": ["relay"],
+    "TCP_SIG": [":0:1:4096:M:N:N:N"],
+    "FIRMWARE_ID": [6.01],
+    "TTL": ["30"], 
+    "WINDOW": ["4096"], 
+    "MSS": ["1423"], 
+    "SCALE": ["1"], 
+    "SACK": ["Y"], 
+    "TIMESTAMP": ["Y"], 
+    "RESPONSES": ["1"], 
+    "ACK": ["N"],
+    "PROTOCOLS": ["DNP3"],
+
+    "SCADA": {
+        "DNP3": {
+            "TCP": ["20000"],
+            "RESP_TO_ANY_DNP3_MASTER": ["1"],
+            "DEFAULT_ANINP_VAR": ["01"]
+        },
+        "MODBUS": {
+            "TCP": ["254"]
+        },
+        "IEC61850": {
+            "TCP": ["102"]
+        },
+        "C37.118": {
+            "TCP": ["4712"],
+            "UDP": ["4713"]
+        }
+    },
+    
+    "SERVICES": {
+        "SYSLOG": {
+            "TCP": ["514"],
+            "SERVER": ["223.255.255.254"]
+        }
+    },
+
+    "CVE_KEYWORDS": ["cpe:2.3:*:ge:*l90*:*:*:*:*:*:*:*:*"]
+}

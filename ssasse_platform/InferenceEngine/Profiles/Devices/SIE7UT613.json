@@ -1,0 +1,16 @@
+{
+    "MODEL": ["SIPROTEC", "SIPROTEC 7UT613", "SIPROTEC Differential Protection 7UT613", "SIPROTEC Differential Protection 7UT613/63x", "7UT613", "sie_7UT613", "sie7UT613"],
+    "VENDOR": ["Siemens"],
+    "DEVICE_TYPE": ["relay"],
+    "FIRMWARE_ID": ["4.65.02"],
+    
+    "SCADA": {
+
+    },
+
+    "SERVICES": {
+
+        },
+
+        "CVE_KEYWORDS": ["cpe:2.3:a:siemens:siprotec*:*:*:*:*:*:*:*:*", "siprotec"]
+}

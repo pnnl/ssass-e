@@ -1,0 +1,21 @@
+{
+    "MODEL": ["ControlWave", "Remote IO", "ControlWave Remote IO", "0x0025", "0x0021", "cwethu1", "0x00480009", "cwethu0", "0x0048000b"],
+    "VENDOR": ["Redlioninc", "Emerson"],
+    "DEVICE_TYPE": ["relay"],
+    "TCP_SIG": [":0:1:264:M:N:N:N"],
+    "TTL": ["32"],
+    "FIRMWARE_ID": ["0x0207", "0x0205"],
+    "PROTOCOLS": ["MODBUS"],
+
+    "SCADA": {
+        "Sixnet UDR": {
+            "TCP": ["1594"]
+        }
+    },
+    
+    "SERVICES": {
+
+    },
+
+    "CVE_KEYWORDS": ["cpe:2.3:o:emerson:controlwave_micro_firmware:*:*:*:*:*:*:*:*", "cpe:2.3:h:emerson:controlwave_micro:-:*:*:*:*:*:*:*", "CVE-2018-5452"]
+}

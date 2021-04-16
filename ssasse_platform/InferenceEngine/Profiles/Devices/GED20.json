@@ -1,0 +1,31 @@
+{
+    "MODEL": ["GED20", "D20", "Multilin D20", "D20ME", "5262007ccu", "test_2"],
+    "VENDOR": ["GE"],
+    "DEVICE_TYPE": ["rtu"],
+    "TCP_SIG": [":0:1:4096:M:N:N:N"],
+    "TTL": ["60"],
+    "FIRMWARE_ID": [""],
+    "PROTOCOLS": ["DNP3"],
+
+    "SCADA": {
+        "DNP3": {
+            "UDP": ["20000"]
+        },
+        "C37.118": {
+            "TCP": [],
+            "UDP": []
+        }
+    },
+
+    "SERVICES": {
+        "TELNET": {
+            "TCP": ["23"]
+        },
+        "DATABASE": {
+            "TCP": []
+        }
+    },
+
+    "CVE_KEYWORDS": ["cpe:2.3:*:ge:*d20*:*:*:*:*:*:*:*:*", "https://us-cert.cisa.gov/ics/alerts/ICS-ALERT-12-019-01A"]
+}
+

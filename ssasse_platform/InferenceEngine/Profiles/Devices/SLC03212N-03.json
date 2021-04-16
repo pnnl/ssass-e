@@ -1,0 +1,36 @@
+{
+    "MODEL": ["SLC03212N-03", "SLC Console Manager", "SLC32", "slc03212n03", "slc6896"],
+    "VENDOR": ["Lantronix"],
+    "FIRMWARE_ID": [""],
+    "DEVICE_TYPE": ["port_server"],
+    "SCADA": {
+
+    },
+
+    "SERVICES": {
+        "TELNET": {
+            "TCP": ["23"],
+            "DEFAULT_CREDS": ["", ""]
+        },
+        "SSH": {
+            "TCP": ["22"]
+        },
+        "HTTPS":  {
+            "TCP": ["443"]
+        },
+        "NTP": {
+            "TCP": ["123"]
+        },
+        "LDAP": {
+            "TCP": ["636"]
+        },
+        "RADIUS": {
+            "TCP": ["1812"]
+        },
+        "SYSLOG": {
+            "UDP": ["514"]
+        }
+    },
+
+    "CVE_KEYWORDS": ["cpe:2.3:o:lantronix:mss_firmware:-:*:*:*:*:*:*:*", "cpe:2.3:h:lantronix:mss:-:*:*:*:*:*:*:*", "CVE-2018-12925", "cpe:2.3:h:lantronix:mss485-t:*:*:*:*:*:*:*:*", "CVE-2008-7201", "cpe:2.3:h:lantronix:securelinx:2.0:*:*:*:*:*:*:*", "cpe:2.3:h:lantronix:securelinx:3.0:*:*:*:*:*:*:*",  "CVE-2005-2189"]
+}

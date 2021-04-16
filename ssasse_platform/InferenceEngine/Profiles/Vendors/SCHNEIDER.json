@@ -1,0 +1,21 @@
+{
+    "VENDOR": ["Sage", "Schneider", "Schneider Electric", "Schneider_Electric", "versalog"],
+    "SCADA": {
+        "DNP3": {
+            "TCP": ["20000"]
+        }
+    },
+    "SERVICES": {
+        "FTP": {
+            "TCP": ["21"]
+        },
+        "HTTP": {
+            "TCP": ["80"]
+        },
+        "TFTP": {
+            "TCP": [""]
+        }
+    },
+
+    "CVE_KEYWORDS": ["cpe:2.3:*:schneider-electric:*:*:*:*:*:*:*:*:*", "schneider-electric"]
+}

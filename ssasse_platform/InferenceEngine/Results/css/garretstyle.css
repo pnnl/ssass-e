@@ -1,0 +1,285 @@
+body{
+    font-family: Arial, Helvetica, sans-serif;
+}
+.topNav{
+    display:block; 
+    margin:auto; 
+    overflow:hidden; 
+    position:sticky; 
+    border-radius:.35rem; 
+    top:0; 
+    background-color:#343a40; 
+    color:#fff;
+    text-align: left;
+}
+.topNavImg{
+    display: block; 
+    float:left; 
+    background-color:#343a40; 
+    border-radius:.35rem; 
+    max-width:75px; 
+    color:#fff;
+}
+.topNavLink{
+    font-family: Arial, Helvetica, sans-serif;
+    float:right; 
+    display:block; 
+    color:#fff; 
+    background-color:#343a40; 
+    text-align:center; 
+    padding:30px; 
+    font-size:17px; 
+    text-decoration:none;
+}
+.topNavLink:hover{
+    background-color: #3e5d75
+}
+.topNavLinkActive{
+    font-family: Arial, Helvetica, sans-serif;
+    float:right; 
+    display:block; 
+    color:#fff; 
+    background-color:#3e5d75; 
+    text-align:center; 
+    padding:30px; 
+    font-size:17px; 
+    text-decoration:none;
+}
+.topNavButton{
+    margin: 1.6rem auto 1.6rem auto;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size:17px; 
+    font-weight:600;
+    color:#000; 
+    background-color:#EDF1FA;
+    text-align:center; 
+    padding:2rem auto 2rem auto;
+    width:100px;
+    height:30px;
+    text-decoration:none;
+    border: outset #5c646b 3px;
+    border-radius: .35rem;
+}
+.topNavButton:hover{
+    background-color: #d4ecff;
+}
+.topNavInfo{
+    font-family: Arial, Helvetica, sans-serif;
+    margin: auto;
+}
+
+
+
+
+.pageTitle{
+    border:solid #343a40 2px; 
+    width:96%; 
+    margin:1rem auto 1rem auto; 
+    text-align:center; 
+    padding:1rem; 
+    color:#D77600; 
+    background-color: #EDF1FA; 
+    border-radius:.35rem; 
+    font-weight: 900; 
+    font-size: 4rem; 
+    text-shadow: 1px #fff; 
+    font-family: Arial, Helvetica, sans-serif;
+}
+.sectionTitle{
+    text-transform: uppercase; 
+    width: 96%; 
+    margin:1rem auto 1rem auto; 
+    text-align:center; 
+    background-color: #343a40; 
+    padding:1rem; 
+    border-radius: .35rem; 
+    color: #EDF1FA; 
+    font-weight: 900; 
+    font-size: 2rem; 
+    font-family: Arial, Helvetica, sans-serif;
+}
+.sectionBody{
+    width: 96%;
+    margin:1rem auto 1rem auto; 
+    border: solid #343a40 2px;
+    border-radius: .35rem;
+    background-color: #EDF1FA;
+    padding: 1rem;
+    font-weight: 700;
+    color: #343a40;
+    font-size: 1.7rem;
+    font-family: Arial,Helvetica,sans-serif;
+}
+.sectionUnderline{
+    height: 20px;
+    margin: 1rem 0rem 1rem 0rem;
+    background-color: #6e6e6e;
+    border-radius: .35rem;
+}
+.sectionRow{
+    display: table;
+    width: 96%;
+    margin: auto;
+}
+.sectionColumn{
+    text-align:left;
+    float: left;
+    width: 30%;
+    padding-left: 15%;
+}
+
+
+
+.vulnHigh{
+    color: red;
+}
+.vulnMed{
+    color: orange;
+}
+.vulnLow{
+    color: green;
+}
+
+.unidentifiedVsIdentifiedBar{
+    height:50px;
+    border:2px solid #000;
+    text-align:center;
+    color:#fff;
+    background-image:
+        linear-gradient(red,red),
+        linear-gradient(green,green);
+    background-size:10% 100%,100% 100%;
+    background-repeat:no-repeat;
+    transition:1s;
+}
+.highVsMedVsLowBar{
+    height:50px;
+    border:2px solid #000;
+    text-align:center;
+    color:#fff;
+    background-image:
+        linear-gradient(green,green),
+        linear-gradient(yellow,yellow),
+        linear-gradient(red,red);
+    background-size:10% 100%,20% 100%,100% 100%;
+    background-repeat:no-repeat;
+    transition:1s;
+}
+
+
+.table{
+    width:96%; 
+    min-width: 900px;
+    font-family: Arial,Helvetica,sans-serif; 
+    table-layout: fixed; 
+    border-collapse: collapse; 
+    margin: 1rem auto 1rem auto; 
+    background-color: #EDF1FA; 
+    text-align: center; 
+    color: #343a40; 
+    word-wrap: break-word;
+    
+}
+.tableHeader{
+    font-size: 1.1rem; 
+    font-weight: 900;
+    background-color: #D77600; 
+    border: solid 2px #343a40;
+}
+.tableRow{
+    font-weight: 600;
+    border: solid 2px #343a40;
+}
+.tableCell{
+    border: solid 2px #343a40;
+}
+.tableSubRow{
+    font-weight: 600;
+    border: solid 2px #343a40;
+    background-color: #CAD4EB; 
+}
+.tableSubCell{
+    border: solid 2px #343a40;
+}
+
+
+
+.canvasDiv{
+    width: 96%;
+    height: 400px;
+    margin: auto;
+    text-align: center;
+    border: solid #343a40 2px;
+    border-radius: .35rem;
+    background-color: #EDF1FA;
+    font-size: 2rem;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+
+
+
+.button{
+    background-color: #343a40;
+    color: #fff;
+    display: inline-block;
+    padding: 10px 20px;
+    width: 100%;
+    border: none;
+}
+.button:hover{
+    background-color: #495158;
+}
+
+
+
+
+
+
+#deviceTitle{
+    text-align: center;
+}
+
+#device{
+    background-color: #343a40;
+    color: #fff;
+    margin: auto;
+    text-align: center;
+    font-weight: 900;
+    border-radius: .35rem;
+}
+
+#search{
+    margin: auto auto auto 30px;
+}
+
+caption {
+
+    color:#343a40;
+    background-color: #EDF1FA;
+    margin: auto;
+    text-align: center;
+    border-radius: .35rem .35rem 0 0;
+    font-size: 2rem;
+    border: solid 2px #343a40;
+}
+
+caption a{
+    display: block;
+    color:#343a40;
+    background-color: #EDF1FA;
+
+}
+
+caption a:hover{
+    color: #D77600;
+}
+
+#CVEs {
+    display: block;
+    font-size: 1.6rem;
+    background-color: #343a40;
+    color: #fff;
+    text-align: left;
+    padding-left: 35%;
+}

@@ -1,0 +1,76 @@
+<DOCTYPE html>
+<html lang="en">
+<head>
+  <title>PNNL ICS</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="js/Chart.js"></script>
+  <script type="text/javascript" src="js/require.js"></script>
+  <script type="text/javascript" src="js/renderjson.js"></script>
+  <script type="text/javascript" src="js/rainbow.js"></script>
+
+
+  <style>
+  </style>
+</head>
+<body>
+
+<div class="jumbotron text-center" style="margin-bottom:0">
+<nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+  <!-- Brand/logo -->
+  <a class="navbar-brand" href="#">
+    <img src="img/PNNL_Stacked_Logo_White_RGB.png" alt="logo" style="width:50px;">
+  </a>
+  
+  <!-- Links -->
+  <ul class="navbar-nav">
+    <li class="nav-item">
+      <a class="nav-link" href="home.html">Results</a>
+    </li>
+  </ul>
+</nav>
+  <h1>SSASS-E Platform</h1>
+  <h2>Control Panel</h2>
+</div>
+
+<div class="container" id="summary">
+
+<script>
+function setStatusOnline()
+{
+  document.getElementById("engineStatus").innerHTML = "ONLINE";
+}
+function setStatusOffline()
+{
+  document.getElementById("engineStatus").innerHTML = "OFFLINE";
+}
+</script>
+
+<h2>Engine</h2>
+
+<div class="btn-group">
+<form action="php/start.php">
+  <input type="submit" class="btn btn-low" value="Start">
+</form>
+</div>
+
+<div class="btn-group">
+<form action="php/stop.php">
+  <input type="submit" class="btn btn-high" value="Stop">
+</form>
+</div>
+
+</div>
+
+<div class="footer">
+		<p><img src="img/PNNL_Stacked_Logo_White_RGB.png" alt="PNNL Brand/logo"></p>
+		<p>2019 &copy; All rights reserved.</p>
+</div>
+
+</body>
+</html>
+

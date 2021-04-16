@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script type="text/javascript" src="js/flaskquery.js"></script>
+</head>
+
+<script>
+    function getRequests()
+    {
+        var data = getLiveData("requests");
+        document.getElementById("lblRequests").innerHTML = data;
+    }
+    function putRequest()
+    {
+        var input = document.getElementById("txtInput").value;
+        putLiveData("request="+input)
+    }
+</script>
+
+<body>
+<button type="button" id="btnGetRequests" onclick="getRequests()">Get Requests</button><br>
+<label id="lblRequests">Requests Here</label><br><br>
+
+User input:<br>
+<input type="text" id="txtInput"></input><br><br>
+
+<button type="button" id="btnPutRequest" onclick="putRequest()">Put Requests</button><br><br>
+</body>
+
+</html>

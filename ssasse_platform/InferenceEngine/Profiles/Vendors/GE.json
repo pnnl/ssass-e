@@ -1,0 +1,28 @@
+{
+    "VENDOR": ["GE", "GE Grid Solutions", "General Electric", "General Electric Grid Solutions", "harris"],
+    "SCADA": {
+        "MODBUS": {
+            "TCP": ["502"]
+        },
+        "DNP3": {
+            "TCP": ["20000"]
+        },
+        "IEC60870": {
+            "TCP": ["2404"]
+        }
+    },
+
+    "SERVICES": {
+        "TFTP": {
+            "TCP": ["69"]
+        },
+        "HTTP": {
+            "TCP": ["80"]
+        },
+        "NTP": {
+            "TCP": ["123"]
+        }
+    },
+
+    "CVE_KEYWORDS": ["cpe:2.3:*:ge:*:*:*:*:*:*:*:*:*", "general electric"]
+}

@@ -1,0 +1,31 @@
+{
+    "MODEL": ["ROC800", "ROC800 (809/827)", "roc800 series", "ROC800-Series Remote Operations Controller", "roc800809827", "w68233ver3.71", "w68233", "remoteoprtnscntrlr"],
+    "VENDOR": ["Emerson"],
+    "DEVICE_TYPE": ["relay"],
+    "TCP_SIG": [":0:1:8192:M:N:N:N"],
+    "TTL": ["64"],
+    "FIRMWARE_ID": ["W68233", "W68233 Ver3.71"],
+    "PROTOCOLS": ["MODBUS"],
+    "SCADA": {
+        "ROCPLUS": {
+            "TCP": ["4000"]
+        }
+    },
+    
+    "SERVICES": {
+        "SSH": {
+            "TCP": ["22"]
+        },
+        "TCP/IP": {
+            "TCP": []
+        },
+        "TELNET": {
+            "TCP": ["23"]
+        },
+        "FTP": {
+            "TCP": []
+        }
+    },
+
+    "CVE_KEYWORDS": ["cpe:2.3:h:emerson:roc_800*:*:*:*:*:*:*:*:*", "roc_800"]
+}

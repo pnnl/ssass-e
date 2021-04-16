@@ -1,0 +1,10 @@
+bro-ip: "127.0.0.1"
+bro-port: 9999
+bro-service: true
+bro-install-path: "/home/ssasse/zeek-install"
+protocols:
+  - dnp3
+  - modbus
+  - bacnet
+  - cip
+  - sel

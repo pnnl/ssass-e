@@ -1,0 +1,40 @@
+
+{
+    "VENDOR": ["schweitz", "SEL", "Schweitzer", "Schweitzer Engineering Laboratories", "Selinc"],
+
+    "SCADA": {
+        "DNP3": {
+            "TCP": ["20000"],
+            "UDP": ["20000"]
+        },
+        "IEC61850": {
+            "TCP": ["102"]
+        },
+        "IEC60870": {
+            "TCP": ["2404"]
+        },
+        "C37.118": {
+            "TCP": ["4712"],
+            "UDP": ["4713"]
+        }
+    },
+
+    "SERVICES": {
+        "FTP": {
+            "TCP": ["21"]
+        },
+        "TELNET": {
+            "TCP": ["23"],
+	        "DEFAULT_CREDS": ["ACC", "OTTER"]
+        },
+        "HTTP":  {
+            "TCP": ["80"],
+            "DEFAULT_CREDS": ["ACC", "OTTER"]
+        },
+        "NTP":  {
+            "TCP": ["123"]
+        }
+    },
+
+    "CVE_KEYWORDS": ["cpe:2.3:h:selinc:*:*:*:*:*:*:*:*:*", "Schweitzer Engineering Laboratories", "selinc", "cpe:2.3:a:selinc:acselerator_architect:*:*:*:*:*:*:*:*", "cpe:2.3:a:selinc:sel_compass:*:*:*:*:*:*:*:*"]
+}

@@ -1,0 +1,39 @@
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="css/garretstyle.css">
+    <meta charset="utf-8">
+    <title>Policy</title>
+    <meta name="description" content="The HTML5 Herald">
+    <meta name="author" content="SitePoint">
+    <script type="text/javascript" src="js/flaskquery.js"></script>
+</head>
+
+<body>
+    <div class="topNav">
+        <img src="img/PNNL_Stacked_Logo_White_RGB.png" alt="PNNL_Stacked_Logo_White_RGB" class="topNavImg">
+        <a href="debug.html" id="linkDebug" class="topNavLink">DEBUG</a>
+        <a href="policy.html" id="linkPolicy" class="topNavLinkActive">POLICY</a>
+        <a href="home.html" id="linkHome" class="topNavLink">HOME</a>
+    </div>
+
+    <div class="pageTitle">Device Policy</div>
+
+    <div class="sectionTitle">POLICY TABLE</div>
+    <table id="tablePolicy" class="table">
+        <tr class="tableRow">
+            <th class="tableHeader">IP Address</th>
+            <th class="tableHeader">Config Scans</th>
+            <th class="tableHeader">Network Scans</th>
+            <th class="tableHeader">TCP Scans</th>
+            <th class="tableHeader">SCADA Scans</th>
+            <th class="tableHeader">REMOVE</th>
+        </tr>
+    </table>
+
+    <button class="button" id="btnAdd">ADD</button>
+    <br><br>
+    <button class="button" id="btnSave">SAVE</button>
+
+    <script src="js/policy.js"></script>
+</body>
+</html>

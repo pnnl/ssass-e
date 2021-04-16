@@ -1,0 +1,13 @@
+{
+    "VENDOR": ["LANTRONIX", "SLC", "SLB", "SLP", "SLM", "Detector", "Spider", "lantroni"],
+    
+    "SCADA": {
+
+    },
+    
+    "SERVICES": {
+
+    },
+
+    "CVE_KEYWORDS": ["cpe:2.3:*:lantronix:*:*:*:*:*:*:*:*:*", "lantronix"]
+}
