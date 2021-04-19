@@ -97,7 +97,7 @@ sudo chmod +x /usr/sbin/dumpcap
 ### 2. Clone SSASSE code
 
 ```sh
-git clone https://stash.pnnl.gov/scm/~nidd494/evidencecollection.git
+git clone https://github.com/pnnl/ssass-e.git
 ```
 
 ### 3. Install python packages required by SSASSE
@@ -610,14 +610,14 @@ iptables -L -v
 
 #### 8.3) Apache2 - Move SSASS-E web files over
  ```
-sudo cp -r evidencecollection/ssasse_platform/InferenceEngine/Results/* /var/www/ssasse.com/
+sudo cp -r $HOME/ssass-e/ssasse_platform/InferenceEngine/Results/* /var/www/ssasse.com/
 ```
 
 #### 8.4) Prepping config files for Webpage/Flask API
 
 After the IP of the box is set and all prior install/requirements are met, the following files will need to be edited 
 
-* evidencecollection/ssasse_platform/config.yml 
+* $HOME/ssass-e/ssasse_platform/config.yml 
 ```
 Edit the ip and internal_ip_range variables accordingly
 ```
@@ -626,12 +626,12 @@ Edit the ip and internal_ip_range variables accordingly
 Line 2 – the flaskURL needs to be changed to the IP of the box
 If the laptop itself will be used to view the webpage, the flaskURL should be left as 127.0.0.1 
 ```
-* ssasse_platform/InferenceEngine/Scans/policy.json 
+* $HOME/ssass-e/ssasse_platform/InferenceEngine/Scans/policy.json 
 ```
 This file declares which scans are allowed against which IPs. It can be edited here or on SSASS-E web page, on Policy page (recommended).
 Individual IPs can be listed, or a range can be given with the 0.0.0.0/0 notation 
 ```
-* ssasse_platform/InferenceEngine/Scans/zonemap.json 
+* $HOME/ssass-e/ssasse_platform/InferenceEngine/Scans/zonemap.json 
 ```
 Define the list of IPs that belong to substation ranges 
 Individual IPs can be listed, or a range can be given with the 0.0.0.0/0 notation 
@@ -660,7 +660,7 @@ Replace live_capture.py and capture.py in ~/.local/lib/python3.6/site-packages/p
 
 ## Executing the tool
 
-* Login to machine running Inference Engine and go to $HOME/evidencecollection
+* Login to machine running Inference Engine and go to $HOME/ssass-e
 
 * Start the flask API:
 
@@ -677,7 +677,7 @@ If the machine itself is used to view the page, the IP will be 127.0.0.1
 
 * Start/stop/restart buttons at top of home page
 
-![start](images/start_stop.png){width=20%}
+![start](images/start_stop.png)
 
 These buttons can be used to control the platform
 
@@ -738,7 +738,7 @@ It will show the IP vs Scan policy table
 
 ## Troubleshooting
 
-Login to each of the sensor boxes and navigate to ‘$HOME/evidencecollection/’ path. Tail the ssasse.log to find errors
+Login to each of the sensor boxes and navigate to ‘$HOME/ssass-e/’ path. Tail the ssasse.log to find errors
 
 
 
