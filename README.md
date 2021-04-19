@@ -17,7 +17,7 @@ SSASSE tool consists of following components:
 4. Web Interface
 
 
-![arch](images/architecture_diagram.png){width=30%}
+![arch](images/architecture_diagram.png)
 
 
 ### Passive Scanning Engine
