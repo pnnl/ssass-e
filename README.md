@@ -712,28 +712,33 @@ The three main pages of the SSASS-E webpage are the Home page, Details page (per
 Each entry on the Device table will have a button that opens a new page to that IP’s Details page.
 
 
-![details](images/details_device_table.png)
+![details](images/button_details.png)
 
 The details page will include, if available through inference:
 
 * Similarity charts
 
-* Vulnerability table
+![details](images/similarity_chart.png)
 
-* Identification and Vulnerability Timelines
+* Vulnerability Summary
 
+![details](images/vuln_table.png)
 
-![details](images/details.png)
+* Identification Timeline
+
+![details](images/id_timeline.png)
+
+* Vulnerability Timeline
+
+![details](images/vuln_timeline.png)
 
 ### Policy page
 
 From the Home page, clicking the POLICY button in the top right will open the Policy page
 
-![policy](images/policy.png)
-
 It will show the IP vs Scan policy table
 
-![dpolicy](images/policy_details.png)
+![policy](images/policy.png)
 
 
 ## Troubleshooting
