@@ -720,7 +720,7 @@ The details page will include, if available through inference:
 
 ![details](images/similarity_chart.png)
 
-* Vulnerability table
+* Vulnerability Summary
 
 ![details](images/vuln_table.png)
 
