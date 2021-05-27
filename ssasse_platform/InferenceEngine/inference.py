@@ -84,6 +84,7 @@ except ImportError:
 import sqlite3
 import json
 from .Databases import dbManager
+from .Databases import dbManagerNew
 
 from . import decisionSimple
 from . import helper
@@ -93,6 +94,7 @@ from . import identifyVulnerabilities
 from .identifyIP import IpIdentifier
 
 # Database files
+ENEW_DB_FILE = "enew_db.sqlite" # new evidence
 E_DB_FILE = "e_db.sqlite" # evidence
 D_DB_FILE = "d_db.sqlite" # devices
 V_DB_FILE = "v_db.sqlite" # vendors
@@ -127,6 +129,8 @@ class DeviceIdentificationEngine(Actor):
         self.identifyVulnQueue = multiprocessing.Queue()
 
         self.DBManager = dbManager.DBManager()
+        self.DBManagerNew = dbManagerNew.DBManager()
+
         self.IpIdentifier = identifyIP.IpIdentifier(self.config, self.DBManager, None)
         self.ServiceProcessor = identifyVulnerabilities.ServiceProcessor(self.config, self.DBManager, None)
         #self.processEvidenceGreenlet = gevent.spawn(self.geventLoop)
@@ -857,6 +861,7 @@ class DeviceIdentificationEngine(Actor):
 
             # insert new evidence into DB (as is, not sanitized)
             self.DBManager.insert(E_DB_FILE, mysteryDevice, newEvidence)
+            self.DBManagerNew.insert(E_DB_FILE, mysteryDevice, newEvidence, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), ((("Active", "Passive")["Active" in fromWho]), "Unknown")["Passive" in fromWho or "Active" in fromWho])
 
             # check if NA vendor needs to be removed
             if "VENDOR" in newEvidence.keys() and "NA" not in newEvidence["VENDOR"]:
@@ -873,6 +878,7 @@ class DeviceIdentificationEngine(Actor):
                 if "DEVICE_TYPE" in deviceProfile.keys():
                     newEvidence["DEVICE_TYPE"] = deviceProfile["DEVICE_TYPE"]
                     self.DBManager.insert(E_DB_FILE, mysteryDevice, newEvidence)
+                    self.DBManagerNew.insert(ENEW_DB_FILE, mysteryDevice, newEvidence, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), ((("Active", "Passive")["Active" in fromWho]), "Internal")["Passive" in fromWho or "Active" in fromWho])
 
             # add IP to queue to be processed
             printD("receive before() - ID_QUEUE: {0}".format(dbManager.select(S_DB_FILE, "ID_QUEUE").get("IP", [])))

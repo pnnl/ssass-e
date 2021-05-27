@@ -39,9 +39,9 @@ if sys.version_info[0] >= 3:
     unicode = str
 
 import json
-from future.utils import viewitems
 from io import open
 from ssasse_platform.InferenceEngine.Databases import dbManager
+from ssasse_platform.InferenceEngine.Databases import dbManagerNew
 import os
 import subprocess
 
@@ -53,6 +53,8 @@ database_path = "ssasse_platform/InferenceEngine/Databases/"
 profiles_path = "ssasse_platform/InferenceEngine/Profiles/"
 
 # Create fresh databases
+ENEW_DB_FILE = "enew_db.sqlite" # new evidence
+
 E_DB_FILE = "e_db.sqlite" # evidence
 D_DB_FILE = "d_db.sqlite" # devices
 V_DB_FILE = "v_db.sqlite" # vendors
@@ -62,7 +64,9 @@ S_DB_FILE = "s_db.sqlite" # status
 R_DB_FILE = "r_db.sqlite" # requests/notifications
 
 DBManager = dbManager.DBManager()
+DBManagerNew = dbManagerNew.DBManager()
 
+DBManager.create(ENEW_DB_FILE)
 DBManager.create(E_DB_FILE)
 DBManager.create(D_DB_FILE)
 DBManager.create(V_DB_FILE)
