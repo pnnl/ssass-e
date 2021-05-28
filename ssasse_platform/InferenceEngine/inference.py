@@ -102,7 +102,7 @@ S_DB_FILE = "s_db.sqlite" # status
 R_DB_FILE = "r_db.sqlite" # requests
 
 # Ignore IP List
-IGNORE_IPS = ["172.17.130.29", "172.16.101.151", "172.16.100.241", "172.17.0.31", "172.17.0.17"]
+IGNORE_IPS = []
 
 # Paths
 scans_path = "ssasse_platform/InferenceEngine/Scans/"
