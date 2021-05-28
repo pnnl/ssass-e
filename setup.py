@@ -66,7 +66,7 @@ R_DB_FILE = "r_db.sqlite" # requests/notifications
 DBManager = dbManager.DBManager()
 DBManagerNew = dbManagerNew.DBManager()
 
-DBManager.create(ENEW_DB_FILE)
+DBManagerNew.create(ENEW_DB_FILE)
 DBManager.create(E_DB_FILE)
 DBManager.create(D_DB_FILE)
 DBManager.create(V_DB_FILE)

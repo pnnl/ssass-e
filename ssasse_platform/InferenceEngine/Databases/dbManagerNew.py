@@ -54,7 +54,7 @@ import multiprocessing
 
 class DBManager():
     def __init__(self):
-        printD("dbManager.__init__()")
+        #printD("dbManager.__init__()")
         self.lock = multiprocessing.Lock()
         self.vulnLock = multiprocessing.Lock()
 
@@ -63,11 +63,11 @@ class DBManager():
     # Wipe DB and create it from scratch. Will have no records in the tables. 
     ###############################################################################
     def create(self, sqlite_file):
-        printD("dbManager.create()")
+        #printD("dbManager.create()")
         self.lock.acquire()
         try:
             # wipe file
-            printD("dbManager - creating db file from scratch: {0}".format(sqlite_file))
+            #printD("dbManager - creating db file from scratch: {0}".format(sqlite_file))
             f = open("{0}{1}".format(sqlite_path,sqlite_file), "w+")
             f.close()
 
@@ -75,7 +75,7 @@ class DBManager():
             c = conn.cursor()
 
             # New Evidence
-            printD("dbManager.create() - create table: new_evidence")
+            #printD("dbManager.create() - create table: new_evidence")
             c.execute("""CREATE TABLE IF NOT EXISTS new_evidence (
                 ip text,
                 value text,
@@ -83,7 +83,7 @@ class DBManager():
                 type text)""")
 
             # All Evidence
-            printD("dbManager.create() - create table: all_evidence")
+            #printD("dbManager.create() - create table: all_evidence")
             c.execute("""CREATE TABLE IF NOT EXISTS all_evidence (
                 ip text UNIQUE,
                 value text)""")
@@ -103,7 +103,7 @@ class DBManager():
     # insert evidence into DB
     ###############################################################################
     def insert(self, sqlite_file, target_ipaddr, attributeDict, timestamp, evidence_type):
-        printD("dbManager.insert()")
+        #printD("dbManager.insert()")
         self.lock.acquire()
         try:
             newEvidenceDict = {}
@@ -171,15 +171,15 @@ class DBManager():
                 newEvidenceStr = json.dumps(newEvidenceDict)
                 allEvidenceStr = json.dumps(allEvidenceDictAfter)
 
-                printD("dbManager.insert() - ip: {0}, evidence: {1}".format(target_ipaddr, newEvidenceDict))
+                #printD("dbManager.insert() - ip: {0}, evidence: {1}".format(target_ipaddr, newEvidenceDict))
 
                 # insert into new_evidence query
                 c.execute("""INSERT INTO new_evidence (ip, value, timestamp, type) VALUES(?, ?, ?, ?)""", (target_ipaddr, newEvidenceStr, timestamp, evidence_type,))
-                printD("dbManager.insert() - after insert into new_evidence")
+                #printD("dbManager.insert() - after insert into new_evidence")
 
                 # update all_evidence query
                 c.execute("""INSERT OR REPLACE INTO all_evidence (ip, value) VALUES(?, ?)""", (target_ipaddr, allEvidenceStr,))
-                printD("dbManager.insert() - after insert into all_evidence")
+                #printD("dbManager.insert() - after insert into all_evidence")
 
             conn.commit()
             conn.close()
@@ -197,7 +197,7 @@ class DBManager():
 #
 ####################################################################################################
 def select_all(sqlite_file, target_ipaddr):
-    printD("dbManager.select_all() - sqlite_file: {0}, target_ipaddr: {1}".format(sqlite_file, target_ipaddr))
+    #printD("dbManager.select_all() - sqlite_file: {0}, target_ipaddr: {1}".format(sqlite_file, target_ipaddr))
     try:
         returnResult = {}
 
@@ -214,7 +214,7 @@ def select_all(sqlite_file, target_ipaddr):
         if len(result) > 0:
             allEvidenceStr = result[0]
 
-        printD("dbManager.select_all() - allEvidenceStr: {0}".format(allEvidenceStr))
+        #printD("dbManager.select_all() - allEvidenceStr: {0}".format(allEvidenceStr))
         returnResult = json.loads(allEvidenceStr)
 
         conn.close()

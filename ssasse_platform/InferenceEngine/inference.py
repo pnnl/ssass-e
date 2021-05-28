@@ -861,7 +861,12 @@ class DeviceIdentificationEngine(Actor):
 
             # insert new evidence into DB (as is, not sanitized)
             self.DBManager.insert(E_DB_FILE, mysteryDevice, newEvidence)
-            self.DBManagerNew.insert(E_DB_FILE, mysteryDevice, newEvidence, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), ((("Active", "Passive")["Active" in fromWho]), "Unknown")["Passive" in fromWho or "Active" in fromWho])
+            evidenceType = "Internal"
+            if "Passive" in fromWho:
+                evidenceType = "Passive"
+            if "Active" in fromWho:
+                evidenceType = "Active"
+            self.DBManagerNew.insert(ENEW_DB_FILE, mysteryDevice, newEvidence, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), evidenceType)
 
             # check if NA vendor needs to be removed
             if "VENDOR" in newEvidence.keys() and "NA" not in newEvidence["VENDOR"]:
