@@ -111,7 +111,10 @@ class RabbitMqConnection(object):
         def rmq_callback(ch, method, properties, body):
             topic = str(method.routing_key)
             msg = json.loads(body)
-            gevent.spawn(callback, topic, msg)
+            #_log.debug(f"RMQ message delivery: {topic}, {msg}")
+            callback(topic, msg)
+            #gevent.spawn(callback, topic, msg)
+            #self.channel.basic_ack(method.delivery_tag)
 
         if self.channel:
             self.channel.queue_declare(queue=queue_name,
@@ -128,7 +131,7 @@ class RabbitMqConnection(object):
                                        no_ack=True)
 
     def send_message(self, key, message):
-        #_log.debug("rmq send_message:{}, {}".format(key, message))
+        _log.debug("rmq send_message:{}, {}".format(key, message))
         dct = {'content_type': 'application/json'}
         properties = pika.BasicProperties(**dct)
         
@@ -142,7 +145,7 @@ class RabbitMqConnection(object):
             _log.error("Error sending message {}".format(exc))
 
         except OSError as oe:
-            _log.error("Error potentially adapter disconnect error".format(oe))
+            _log.error("Error potentially adapter disconnect error: {}".format(oe))
 
     def disconnect(self):
         try:
@@ -164,7 +167,7 @@ class RabbitMqConnection(object):
         :return:
         """
         #crt = self.rmq_config.crts
-        heartbeat_interval = 20 #sec
+        heartbeat_interval = 0 #20 #sec
         try:
             private_key_file = self.certificates['private-key']
             ca_cert_file =  self.certificates['ca-file']
@@ -196,7 +199,7 @@ class RabbitMqConnection(object):
                     host=self.host,
                     port=self.port,
                     virtual_host=self.virtual_host,
-                    heartbeat=30,
+                    heartbeat=heartbeat_interval,
                     credentials=pika.credentials.PlainCredentials(self.role, self.role))
         except KeyError as e:
            raise(e)

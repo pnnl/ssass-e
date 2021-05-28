@@ -101,6 +101,9 @@ EVENTS_DB_FILE = "events_db.sqlite" # events
 S_DB_FILE = "s_db.sqlite" # status
 R_DB_FILE = "r_db.sqlite" # requests
 
+# Ignore IP List
+IGNORE_IPS = []
+
 # Paths
 scans_path = "ssasse_platform/InferenceEngine/Scans/"
 vendor_profiles_path = "ssasse_platform/InferenceEngine/Profiles/Vendors"
@@ -157,7 +160,7 @@ class DeviceIdentificationEngine(Actor):
         pass
 
     def evidence_callback(self, topic, message):
-        printD("InferenceEngine.evidence_callback() - ip: {0}, evidence callback: {1}, {2}, CTR:{3}".format(message.get("TARGET_IPADDR", None), topic, message, message["CTR"]))
+        #printD("InferenceEngine.evidence_callback() - ip: {0}, evidence callback: {1}, {2}, CTR:{3}".format(message.get("TARGET_IPADDR", None), topic, message, message["CTR"]))
         self.receiveEvidence(message, "Passive")
         #self.receiveQueue.put((message, "Passive"))
 
@@ -442,12 +445,12 @@ class DeviceIdentificationEngine(Actor):
 
         # run identification process on the chosen IP (mysteryDevice)
         if mysteryDevice != False:
-            if mysteryDevice not in dbManager.select(S_DB_FILE, "DECK").get("IP", []):
-                self.DBManager.removeVal(S_DB_FILE, "ID_QUEUE", "IP", mysteryDevice)
-            else:
-                self.DBManager.removeVal(S_DB_FILE, "DECK", "IP", mysteryDevice)
-                printD("identifyProcess")
-                self.identifyProcess(mysteryDevice)
+            #if mysteryDevice not in dbManager.select(S_DB_FILE, "DECK").get("IP", []):
+            self.DBManager.removeVal(S_DB_FILE, "ID_QUEUE", "IP", mysteryDevice)
+            #else:
+            #    self.DBManager.removeVal(S_DB_FILE, "DECK", "IP", mysteryDevice)
+            #    printD("identifyProcess")
+            self.identifyProcess(mysteryDevice)
 
     #####
     #
@@ -723,6 +726,8 @@ class DeviceIdentificationEngine(Actor):
         if "TARGET_IPADDR" not in rawEvidence.keys():
             return False
         mysteryDevice = rawEvidence["TARGET_IPADDR"]
+        if mysteryDevice in IGNORE_IPS:
+            return False
 
         rawEvidence = helper.breakDownDict(rawEvidence, "", {})
 
@@ -770,19 +775,34 @@ class DeviceIdentificationEngine(Actor):
             modelKeys = ["MODEL", "PART_NO", "DEVICE_NAME"]
             if rawKey in modelKeys:
                 oldVal = rawVal
-                if "MODEL" not in newEvidence.keys():
-                    newEvidence["MODEL"] = []
+                #if "MODEL" not in newEvidence.keys():
+                #    newEvidence["MODEL"] = []
                 rawVal = self.modelMap(rawVal)
-                newEvidence["MODEL"].append(rawVal)
+                #newEvidence["MODEL"].append(rawVal)
+                if rawKey not in existingEvidence.keys():
+                    if rawKey not in newEvidence.keys():
+                        newEvidence[rawKey] = []
+                    newEvidence[rawKey].append(rawVal)
+                elif not helper.singleInList(rawVal, existingEvidence[rawKey]):
+                    if rawKey not in newEvidence.keys():
+                        newEvidence[rawKey] = []
+                    if rawVal not in newEvidence[rawKey]:
+                        newEvidence[rawKey].append(rawVal)
                 printD("receiveEvidence - ip: {0}, rawModel: {1}, modelMap: {2}".format(mysteryDevice, oldVal, rawVal))
 
             # signature processing
             if rawKey == "TCP_SIG" and "TTL" in rawEvidence.keys():
                 partialEvidence = self.processSignature(rawVal, rawEvidence["TTL"])
                 for partialKey,partialVal in partialEvidence.items():
-                    if partialKey not in newEvidence.keys():
-                        newEvidence[partialKey] = []
-                    newEvidence[partialKey].append(partialVal)
+                    if partialKey not in existingEvidence.keys():
+                        if partialKey not in newEvidence.keys():
+                            newEvidence[partialKey] = []
+                        newEvidence[partialKey].append(partialVal)
+                    elif not helper.singleInList(partialVal, existingEvidence[partialKey]):
+                        if partialKey not in newEvidence.keys():
+                            newEvidence[partialKey] = []
+                        if partialVal not in newEvidence[partialKey]:
+                            newEvidence[partialKey].append(partialVal)
 
             # new key
             if rawKey not in existingEvidence.keys():
@@ -845,7 +865,7 @@ class DeviceIdentificationEngine(Actor):
             if "MODEL" in newEvidence.keys():
                 self.DBManager.insert(S_DB_FILE, "IDENTIFIED", {"IP": [mysteryDevice]})
                 self.DBManager.removeVal(S_DB_FILE, "ID_QUEUE", "IP", mysteryDevice)
-                self.DBManager.removeVal(S_DB_FILE, "DECK", "IP", mysteryDevice)
+                #self.DBManager.removeVal(S_DB_FILE, "DECK", "IP", mysteryDevice)
 
                 deviceProfile = dbManager.select(D_DB_FILE, newEvidence["MODEL"][0])
                 if "DEVICE_TYPE" in deviceProfile.keys():
@@ -855,7 +875,7 @@ class DeviceIdentificationEngine(Actor):
             # add IP to queue to be processed
             printD("receive before() - ID_QUEUE: {0}".format(dbManager.select(S_DB_FILE, "ID_QUEUE").get("IP", [])))
             if mysteryDevice not in dbManager.select(S_DB_FILE, "IDENTIFIED").get("IP", []):
-                self.DBManager.insert(S_DB_FILE, "DECK", {"IP": [mysteryDevice]})
+                #self.DBManager.insert(S_DB_FILE, "DECK", {"IP": [mysteryDevice]})
                 self.DBManager.insert(S_DB_FILE, "ID_QUEUE", {"IP": [mysteryDevice]})
             printD("receive after() - ID_QUEUE: {0}".format(dbManager.select(S_DB_FILE, "ID_QUEUE").get("IP", [])))
 
