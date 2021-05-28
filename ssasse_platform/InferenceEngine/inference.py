@@ -161,8 +161,6 @@ class DeviceIdentificationEngine(Actor):
 
     def evidence_callback(self, topic, message):
         #printD("InferenceEngine.evidence_callback() - ip: {0}, evidence callback: {1}, {2}, CTR:{3}".format(message.get("TARGET_IPADDR", None), topic, message, message["CTR"]))
-        #if message["TARGET_IPADDR"] == "172.17.0.65":
-        #    printD("InferenceEngine.evidence_callback() - ip: {0}, evidence callback: {1}, {2}, CTR:{3}".format(message.get("TARGET_IPADDR", None), topic, message, message["CTR"]))
         self.receiveEvidence(message, "Passive")
         #self.receiveQueue.put((message, "Passive"))
 
