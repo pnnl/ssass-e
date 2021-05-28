@@ -2,7 +2,7 @@
     "MODEL": ["04515611XB4X4H324XXXX", "SEL451", "451", "sel_451", "sel451a", "451a", "sel_451a", "sel451arelay", "04515611XC0X1H1XXXXXX", "SEL4515RELAY"],
     "VENDOR": ["SEL"], 
     "DEVICE_TYPE": ["relay"],
-    "TCP_SIG": [":0:1:8688:MNWNNSNNT:0:1:1", ":1:1:8688:MNWNNSNNT:0:1:1"],
+    "TCP_SIG": [":0:1:8688:MNWNNSNNT:0:1:1", ":1:1:8688:MNWNNSNNT:0:1:1", ":1:0:14480:MSTNW:7:1:1"],
     "TTL": ["64"],
     "FIRMWARE_ID": ["SEL-451-5-R305-V0-Z013012-D20110331"],
     "SN": ["1.1E+09"],

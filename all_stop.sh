@@ -1,13 +1,13 @@
 #!/bin/bash
 # This script is called from Web server to stop SSASSE in individual sensor boxes
 
-#Kill Local Inference Engine
+#Kill Local Inference Engine inference-2
 sleep 2
-ssh -i /home/ssasse/.ssh/ssass-e.pem -o StrictHostKeyChecking=no ssasse@192.168.3.254 "cd ~/git/evidencecollection; sh kill_ssasse.sh"
+ssh -i /home/ubuntu/.ssh/ssass-e.pem -o StrictHostKeyChecking=no ubuntu@inference-2 "cd ~/git/ssass-e; sh kill_ssasse.sh"
 
-#Kill Active Scanner on Active1
-ssh -i /home/ssasse/.ssh/ssass-e.pem -o StrictHostKeyChecking=no ssasse@172.17.0.90 "cd ~/git/evidencecollection; sh kill_ssasse.sh;"
+#Kill Active Scanner on ssasse
+ssh -i /home/ubuntu/.ssh/ssass-e.pem -o StrictHostKeyChecking=no centos@ssasse "cd ~/git/ssass-e; sh kill_ssasse.sh;"
 
-#Kill Active Scanner on Active2
-ssh -i /home/ssasse/.ssh/ssass-e.pem -o StrictHostKeyChecking=no ssasse@172.17.0.91 "cd ~/git/evidencecollection; sh kill_ssasse.sh;"
+#Kill Active Scanner on nnm-gti
+ssh -i /home/ubuntu/.ssh/ssass-e.pem -o StrictHostKeyChecking=no centos@nnm-gti "cd ~/git/ssass-e; sh kill_ssasse.sh;"
 
