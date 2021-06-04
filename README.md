@@ -650,6 +650,9 @@ The password is encrypted and stored in the ssasse_platform/InferenceEngine/Scan
 The encrypton key is saved in a file in the root directory called "credsSafe". 
 If this file is moved or deleted, the Inference Engine will not be able to decrypt the password and you will have to re-configure credentials again.
 
+#### 8.6) Modify the ssh information as per your deployment setup
+
+Update the ssh information such as ssh keys, linux usernames and hostnames in $SSASSE_ROOT/all_start.sh and $SSASSE_ROOT/all_stop.sh as per your setup.
 
 ### 9. Custom pyshark changes
 
