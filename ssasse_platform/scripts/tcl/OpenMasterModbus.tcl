@@ -1,6 +1,6 @@
 set interface "4"
-set file_path "C:\\Users\\Administrator\\Desktop\\ProtocolTestHarness\\PacketCaptures\\"
-set outfile_path "C:\\Users\\Administrator\\Desktop\\ProtocolTestHarness\\JSON\ Profiles\\"
+set file_path "C:\\Path\\To\\Desired\\Location\\For\\PacketCaptures\\"
+set outfile_path "C:\\Path\\To\\Desired\\Location\\For\\JSON\ Profiles\\"
 set slash "\\"
 set pcapng_ext ".pcapng"
 set local_file_name ""
@@ -10,7 +10,7 @@ set remote_file_name "V:/ModbusDeviceConfiguration.xml"
 set outfile_ext ".json"
 
 # open targets file and read into a variable
-set targets_file [open "C:\\Program\ Files\\Triangle\ MicroWorks\\Protocol\ Test\ Harness\\modbus_targets.txt"]
+set targets_file [open "C:\\Path\\To\\modbus_targets.txt"]
 set targets [split [read $targets_file] "\n"]
 close $targets_file
 
@@ -216,7 +216,7 @@ foreach target $targets {
 	set device [string trim [lindex [split $target] 0]]
     set IP [string trim [lindex [split $target] 1]]
 	set MB_slave [string trim [lindex [split $target] 2]]
-	set capturefilter "host 172.17.128.23 and host "
+	set capturefilter "host CHANGEME and host "
 	set capturefilter $capturefilter$IP
 	set new_file_path $file_path$device$slash
 	set local_file_name $file_path$device$slash$file_name

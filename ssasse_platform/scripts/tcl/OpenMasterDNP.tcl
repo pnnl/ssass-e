@@ -1,12 +1,12 @@
 # Set the Interface for Wireshark to read the Protocols
 set interface "3"
-set file_path "C:\\Users\\Administrator\\Desktop\\ProtocolTestHarness\\PacketCaptures\\"
-set outfile_path "C:\\Users\\Administrator\\Desktop\\ProtocolTestHarness\\JSON\ Profiles\\"
+set file_path "C:\\Path\\To\\Desired\\Location\\For\\Packet\\Captures\\"
+set outfile_path "C:\\Path\\To\\Desired\\Location\\For\\Output\\Profiles\\"
 set slash "\\"
 set pcapng_ext ".pcapng"
 
 # open targets file and read into a variable
-set targets_file [open "C:\\Program\ Files\\Triangle\ MicroWorks\\Protocol\ Test\ Harness\\dnp3_targets.txt"]
+set targets_file [open "C:\\Path\\To\\\dnp3_targets.txt"]
 set targets [split [read $targets_file] "\n"]
 close $targets_file
 
@@ -313,7 +313,7 @@ foreach target $targets {
     set IP [string trim [lindex [split $target] 1]]
 	set DNP3_master [string trim [lindex [split $target] 2]]
 	set DNP3_slave [string trim [lindex [split $target] 3]]
-	set capturefilter "host 172.17.128.23 and host "
+	set capturefilter "host CHANGEME and host "
 	set capturefilter $capturefilter$IP
 	set new_file_path $file_path$device$slash
 	set local_file_name $file_path$device$slash$file_name
