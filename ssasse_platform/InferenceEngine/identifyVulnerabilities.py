@@ -444,11 +444,10 @@ class ServiceProcessor(BaseMysteryEvidenceProcessor):
         self.nmap = resultsDict['nmap']
 
         printD("SN: BEFORE processService infer method: {}".format(self.identified))
-        # pull FULL evidence for device
-        mysteryEvidence = dbManager.select(E_DB_FILE, deviceIP)
+        
         # run inference
         printD("SN: processService: {}, {}, {}".format(deviceIP, devicePort, service))
-        self.infer(deviceIP, mysteryEvidence, devicePort)
+        self.infer(deviceIP, devicePort)
         
 #        resultsDict["activeScanTime"] = self.activeScanTime
 #        resultsDict["activeScansSent"] = self.activeScansSent
@@ -473,11 +472,9 @@ class ServiceProcessor(BaseMysteryEvidenceProcessor):
         if resultsDict['nmap'] == 'yes':
             self.nmap = 'yes'
 
-        # pull FULL evidence for device
-        mysteryEvidence = dbManager.select(E_DB_FILE, deviceIP)
         printD("SN: processNmap: deviceIP: {}, ports: {}".format(deviceIP, ports))
 
-        self.infer(deviceIP, mysteryEvidence, ports)
+        self.infer(deviceIP, ports)
 
         resultsDict['nmap'] = 'done'
         self.nmap = 'done'

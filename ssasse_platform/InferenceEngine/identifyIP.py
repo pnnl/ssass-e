@@ -70,12 +70,14 @@ except ImportError:
 import sqlite3
 import json
 from .Databases import dbManager
+from .Databases import dbManagerNew
 
 #from . import decision_tree_design
 from ssasse_platform.InferenceEngine.deviceDecisionTree import DeviceDecisionTree
 from . import helper
 
 # Database files
+ENEW_DB_FILE = "enew_db.sqlite" # new evidence
 E_DB_FILE = "e_db.sqlite" # evidence
 D_DB_FILE = "d_db.sqlite" # devices
 V_DB_FILE = "v_db.sqlite" # vendors
@@ -127,7 +129,7 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
 
     def scanCategoryDecision(self, mysteryDevice, mysteryEvidence, categoryName, scanCategory):
         decision = "NA"
-        mysteryEvidence = dbManager.select(E_DB_FILE, mysteryDevice)
+        mysteryEvidence = dbManagerNew.select_all(ENEW_DB_FILE, mysteryDevice)
 
         printD("scanCategoryDecision() - ip: {0}, categoryName: {1}, scanCategory: {2}".format(mysteryDevice, categoryName, scanCategory))
         if categoryName == "config_scan":
@@ -234,19 +236,20 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
     def decisionSimple(self, mysteryDevice, mysteryEvidence):
         categoryOrder = ["OUI_Lookup", "config_scan", "scada_scan", "tcp_scan", "network_scan"]
         chosenCategory = "NA"
-        mysteryEvidence = dbManager.select(E_DB_FILE, mysteryDevice)
+        scanEvidence = dbManager.select(E_DB_FILE, mysteryDevice)
+        mysteryEvidence = dbManagerNew.select_all(ENEW_DB_FILE, mysteryDevice)
 
-        if "TARGET_MACADDR" in mysteryEvidence:
-            if not helper.singleInList("OUI_Lookup", mysteryEvidence.keys()):
+        if "TARGET_MACADDR" in scanEvidence:
+            if not helper.singleInList("OUI_Lookup", scanEvidence.keys()):
                 chosenCategory = "OUI_Lookup"
 
             elif "VENDOR" in mysteryEvidence.keys() and helper.singleInList(mysteryEvidence["VENDOR"][0], known_scada_vendors) != False:
                 for categoryName in categoryOrder:
-                    if not helper.singleInList(categoryName, mysteryEvidence.keys()) and self.checkSentPerCategory(mysteryDevice, mysteryEvidence, categoryName) != None and len(self.checkSentPerCategory(mysteryDevice, mysteryEvidence, categoryName)) > 0:
+                    if not helper.singleInList(categoryName, scanEvidence.keys()) and self.checkSentPerCategory(mysteryDevice, scanEvidence, categoryName) != None and len(self.checkSentPerCategory(mysteryDevice, scanEvidence, categoryName)) > 0:
                         chosenCategory = categoryName
                         break
 
-        printD("identifyIP.decisionSimple() - ip: {0}, chosenScan: {1}, evidence: {2}".format(mysteryDevice, chosenCategory, mysteryEvidence))
+        printD("identifyIP.decisionSimple() - ip: {0}, chosenScan: {1}, evidence: {2}, scanEvidence: {3}".format(mysteryDevice, chosenCategory, mysteryEvidence, scanEvidence))
         return chosenCategory
 
 
@@ -264,7 +267,7 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
         skips = ["NA", "Wait", "Done", False]
 
         # Determine scan
-        decision = self.runDecisionTree(mysteryDevice, mysteryEvidence, "global")
+        decision = self.runDecisionTree(mysteryDevice, "global")
 
         # oui
         if decision == "OUI_Lookup":
@@ -279,12 +282,12 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
 
         # Vendor tree
         elif decision == "Vendor_tree":
-            decision = self.runDecisionTree(mysteryDevice, mysteryEvidence, "vendor")
+            decision = self.runDecisionTree(mysteryDevice, "vendor")
 
         # Model tree
         # if unknown, don't try to find firmware
         elif decision == "Model_tree":
-            decision = self.runDecisionTree(mysteryDevice, mysteryEvidence, "model")
+            decision = self.runDecisionTree(mysteryDevice, "model")
 
         # if unknown, handle logic for having ran out of options
         # if global = done, identified.
@@ -410,12 +413,13 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
     ######################################################
     # prepareEvidence
     ######################################################
-    def prepareEvidence(self, mysteryDevice, mysteryEvidence, treeType, modelDecision=None, firmwareDecision=None):
+    def prepareEvidence(self, mysteryDevice, treeType, modelDecision=None, firmwareDecision=None):
         preparedEvidence = {}
         categoriesList = []
         keysList = []
 
-        mysteryEvidence = dbManager.select(E_DB_FILE, mysteryDevice)
+        mysteryEvidence = dbManagerNew.select_all(ENEW_DB_FILE, mysteryDevice)
+        scanEvidence = dbManager.select(E_DB_FILE, mysteryDevice)
 
         if treeType == "global":
             categoriesList = ["tcp_scan"]
@@ -475,7 +479,7 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
             if not self.checkPolicy(mysteryDevice, categoryName):
                 printD("identifyIP.prepareEvidence() - ip: {0}, category {1} set to no because of policy".format(mysteryDevice, categoryName))
                 preparedEvidence[categoryName] = "no"
-            elif helper.singleInList(categoryName, mysteryEvidence.keys()) and mysteryEvidence[helper.singleInList(categoryName, mysteryEvidence.keys())][0] == "no":
+            elif helper.singleInList(categoryName, scanEvidence.keys()) and scanEvidence[helper.singleInList(categoryName, scanEvidence.keys())][0] == "no":
                 if categoryName == "config_scan":
                     if "DEVICE_TYPE" in mysteryEvidence.keys():
                         preparedEvidence[categoryName] = "empty"
@@ -486,7 +490,7 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
                     preparedEvidence[categoryName] = "no"
             else:
                 printD("identifyIP.prepareEvidence() - ip: {0}, category {1} allowed".format(mysteryDevice, categoryName))
-                scansNotSent = self.checkSentPerCategory(mysteryDevice, mysteryEvidence, categoryName)
+                scansNotSent = self.checkSentPerCategory(mysteryDevice, scanEvidence, categoryName)
                 if scansNotSent == None:
                     preparedEvidence[categoryName] = "no"
                 elif len(scansNotSent) > 0:
@@ -501,15 +505,14 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
     # Calls decision tree to receive an action name based on 
     # evidence/profile
     ##########################################################
-    def runDecisionTree(self, mysteryDevice, mysteryEvidence, treeType, modelDecision=None, firmwareDecision=None):
+    def runDecisionTree(self, mysteryDevice, treeType, modelDecision=None, firmwareDecision=None):
         #printD("IpIdentifier.runDecisionTree()")
         #decision = decisionSimple.decision(mysteryEvidence)
 
         profiles = {}
         decisionTree = DeviceDecisionTree(profiles, treeType)
 
-        mysteryEvidence = dbManager.select(E_DB_FILE, mysteryDevice)
-        preparedEvidence = self.prepareEvidence(mysteryDevice, mysteryEvidence, treeType, modelDecision, firmwareDecision)
+        preparedEvidence = self.prepareEvidence(mysteryDevice, treeType, modelDecision, firmwareDecision)
         decision = decisionTree.predict(preparedEvidence)
 
         printD("ProcessIPEngine.runDecisionTree() - ip: {0}, evidence: {1}, preparedEvidence: {2}, decision: {3}, treeType: {4}".format(mysteryDevice, mysteryEvidence, preparedEvidence, decision, treeType))
@@ -525,9 +528,7 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
         import os
         os.close(file_no)
 
-        # pull FULL evidence for device
-        mysteryEvidence = dbManager.select(E_DB_FILE, mysteryDevice)
-        self.infer(mysteryDevice, mysteryEvidence)
+        self.infer(mysteryDevice)
 
         resultsDict["internal"] = self.resultsDict["internal"]
         resultsDict["external"] = self.resultsDict["external"]

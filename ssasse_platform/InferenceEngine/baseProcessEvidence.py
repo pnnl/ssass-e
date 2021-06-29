@@ -125,7 +125,7 @@ class BaseMysteryEvidenceProcessor(object):
     ##########################################################
     # infer()
     ##########################################################
-    def infer(self, mysteryDevice, mysteryEvidence, port=''):
+    def infer(self, mysteryDevice, port=''):
         printD("BaseMysteryEvidenceProcessor.infer()")
         scan = "NA"
         kwargs = dict()

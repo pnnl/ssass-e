@@ -590,7 +590,7 @@ class DeviceIdentificationEngine(Actor):
     # Get Ports from evidence, vendor profile and device profile
     ##########################################################
     def getProtocols(self, mysteryDevice):
-        mysteryEvidence = dbManager.select(E_DB_FILE, mysteryDevice)
+        mysteryEvidence = dbManagerNew.select_all(ENEW_DB_FILE, mysteryDevice)
         #printD("getPorts: {}".format(mysteryEvidence))
         vendor = mysteryEvidence.get('VENDOR', None)
         #if vendor is None or vendor[0].upper() not in ['SEL', 'GE']:
