@@ -128,7 +128,7 @@ class DBManager():
             allEvidenceDictAfter = allEvidenceDictBefore
 
             for key,value in attributeDict.items():
-                key = helper.sanitizeTable(key)
+                key = helper.sanitizeKey(key)
 
                 if type(value) == str:
                     value = helper.sanitizeVal(value)

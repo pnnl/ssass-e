@@ -132,9 +132,12 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
         mysteryEvidence = dbManagerNew.select_all(ENEW_DB_FILE, mysteryDevice)
 
         printD("scanCategoryDecision() - ip: {0}, categoryName: {1}, scanCategory: {2}".format(mysteryDevice, categoryName, scanCategory))
+
+        printD("scanCategoryDecision() - mysteryEvidence: {0}, scanCategory: {1}".format(mysteryEvidence, scanCategory))
+
         if categoryName == "config_scan":
             if "VENDOR" in mysteryEvidence.keys():
-                vendorCategory = scanCategory[mysteryEvidence["VENDOR"][0]]
+                vendorCategory = scanCategory[mysteryEvidence["VENDOR"][0].upper()]
                 scanDict = {}
                 for scanName,val in vendorCategory.items():
                     if "identification" in val["TYPE"]:
@@ -515,7 +518,7 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
         preparedEvidence = self.prepareEvidence(mysteryDevice, treeType, modelDecision, firmwareDecision)
         decision = decisionTree.predict(preparedEvidence)
 
-        printD("ProcessIPEngine.runDecisionTree() - ip: {0}, evidence: {1}, preparedEvidence: {2}, decision: {3}, treeType: {4}".format(mysteryDevice, mysteryEvidence, preparedEvidence, decision, treeType))
+        printD("ProcessIPEngine.runDecisionTree() - ip: {0}, preparedEvidence: {1}, decision: {2}, treeType: {3}".format(mysteryDevice, preparedEvidence, decision, treeType))
         return decision
 
     ##########################################################

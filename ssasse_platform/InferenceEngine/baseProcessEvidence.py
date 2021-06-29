@@ -120,7 +120,7 @@ class BaseMysteryEvidenceProcessor(object):
                 break
 
         printD("baseProcessEvidence.OUILookUp() - MAC OUI LOOKUP VENDOR - {0} for {1}".format(vendor,mac))
-        return vendor
+        return vendor.upper()
 
     ##########################################################
     # infer()
