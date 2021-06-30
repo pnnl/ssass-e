@@ -77,7 +77,9 @@ from ssasse_platform.InferenceEngine.deviceDecisionTree import DeviceDecisionTre
 from . import helper
 
 # Database files
-ENEW_DB_FILE = "enew_db.sqlite" # new evidence
+NEW_E_DB_FILE = "new_e_db.sqlite" # new evidence
+NEW_EVENTS_DB_FILE = "new_events_db.sqlite" # new events
+
 E_DB_FILE = "e_db.sqlite" # evidence
 D_DB_FILE = "d_db.sqlite" # devices
 V_DB_FILE = "v_db.sqlite" # vendors
@@ -122,14 +124,14 @@ known_scada_vendors = ["GE", "SEL", "SCHNEIDER", "EMERSON", "REDLIONINC", "SIEME
 printD(type(known_scada_vendors))
 
 class IpIdentifier(BaseMysteryEvidenceProcessor):
-    def __init__(self, config, DBManager, rmq_connection):
+    def __init__(self, config, DBManager, DBManagerNew, rmq_connection):
         printD("IpIdentifier.__init__()")
-        super(IpIdentifier, self).__init__(config, DBManager, rmq_connection)
+        super(IpIdentifier, self).__init__(config, DBManager, DBManagerNew, rmq_connection)
 
 
-    def scanCategoryDecision(self, mysteryDevice, mysteryEvidence, categoryName, scanCategory):
+    def scanCategoryDecision(self, mysteryDevice, categoryName, scanCategory):
         decision = "NA"
-        mysteryEvidence = dbManagerNew.select_all(ENEW_DB_FILE, mysteryDevice)
+        mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, mysteryDevice)
 
         printD("scanCategoryDecision() - ip: {0}, categoryName: {1}, scanCategory: {2}".format(mysteryDevice, categoryName, scanCategory))
 
@@ -137,27 +139,29 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
 
         if categoryName == "config_scan":
             if "VENDOR" in mysteryEvidence.keys():
-                vendorCategory = scanCategory[mysteryEvidence["VENDOR"][0].upper()]
-                scanDict = {}
-                for scanName,val in vendorCategory.items():
-                    if "identification" in val["TYPE"]:
-                        scanDict[scanName] = val
+                vendorKey = helper.singleInList(mysteryEvidence["VENDOR"][0], scanCategory.keys())
+                if vendorKey:
+                    vendorCategory = scanCategory[vendorKey]
+                    scanDict = {}
+                    for scanName,val in vendorCategory.items():
+                        if "identification" in val["TYPE"]:
+                            scanDict[scanName] = val
 
-                if len(scanDict.keys()) > 1:
-                    if "DEVICE_TYPE" in mysteryEvidence.keys():
-                        deviceType = mysteryEvidence["DEVICE_TYPE"][0]
-                        for scanName,val in scanDict.items():
-                            if not self.checkSent(mysteryDevice, mysteryEvidence, scanName):
-                                if deviceType == val["DEVICE_TYPE"]:
-                                    return scanName
+                    if len(scanDict.keys()) > 1:
+                        if "DEVICE_TYPE" in mysteryEvidence.keys():
+                            deviceType = mysteryEvidence["DEVICE_TYPE"][0]
+                            for scanName,val in scanDict.items():
+                                if not self.checkSent(mysteryDevice, scanName):
+                                    if deviceType == val["DEVICE_TYPE"]:
+                                        return scanName
+                        else:
+                            decision = "no"
+                    elif len(scanDict.keys()) == 1:
+                        for scanName,val in vendorCategory.items():
+                            if not self.checkSent(mysteryDevice, scanName):
+                                return scanName
                     else:
                         decision = "no"
-                elif len(scanDict.keys()) == 1:
-                    for scanName,val in vendorCategory.items():
-                        if not self.checkSent(mysteryDevice, mysteryEvidence, scanName):
-                            return scanName
-                else:
-                    decision = "no"
 
             else:
                 decision = "no"
@@ -182,7 +186,7 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
                     for priority in sorted(scanDict.keys()):
                         scanList = scanDict[priority]
                         for scanName in scanList:
-                            if not self.checkSent(mysteryDevice, mysteryEvidence, scanName):
+                            if not self.checkSent(mysteryDevice, scanName):
                                 return scanName
 
         elif categoryName == "network_scan":
@@ -205,7 +209,7 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
                             for priority in sorted(scanDict.keys()):
                                 scanList = scanDict[priority]
                                 for scanName in scanList:
-                                    if not self.checkSent(mysteryDevice, mysteryEvidence, scanName):
+                                    if not self.checkSent(mysteryDevice, scanName):
                                         return scanName
 
                 # otherwise use network_probes to go through the protocols and try scans
@@ -228,7 +232,7 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
                             for priority in sorted(scanDict.keys()):
                                 scanList = scanDict[priority]
                                 for scanName in scanList:
-                                    if not self.checkSent(mysteryDevice, mysteryEvidence, scanName):
+                                    if not self.checkSent(mysteryDevice, scanName):
                                         return scanName
 
         return decision
@@ -236,11 +240,11 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
     ##########
     #
     ##########
-    def decisionSimple(self, mysteryDevice, mysteryEvidence):
+    def decisionSimple(self, mysteryDevice):
         categoryOrder = ["OUI_Lookup", "config_scan", "scada_scan", "tcp_scan", "network_scan"]
         chosenCategory = "NA"
         scanEvidence = dbManager.select(E_DB_FILE, mysteryDevice)
-        mysteryEvidence = dbManagerNew.select_all(ENEW_DB_FILE, mysteryDevice)
+        mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, mysteryDevice)
 
         if "TARGET_MACADDR" in scanEvidence:
             if not helper.singleInList("OUI_Lookup", scanEvidence.keys()):
@@ -248,7 +252,7 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
 
             elif "VENDOR" in mysteryEvidence.keys() and helper.singleInList(mysteryEvidence["VENDOR"][0], known_scada_vendors) != False:
                 for categoryName in categoryOrder:
-                    if not helper.singleInList(categoryName, scanEvidence.keys()) and self.checkSentPerCategory(mysteryDevice, scanEvidence, categoryName) != None and len(self.checkSentPerCategory(mysteryDevice, scanEvidence, categoryName)) > 0:
+                    if not helper.singleInList(categoryName, scanEvidence.keys()) and self.checkSentPerCategory(mysteryDevice, categoryName) != None and len(self.checkSentPerCategory(mysteryDevice, categoryName)) > 0:
                         chosenCategory = categoryName
                         break
 
@@ -261,10 +265,10 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
     # this is the function that gets called in order to determine what unknown data would be impactful for the inference operation. 
     # This data will then be used to determine which scan should be fired off. 
     ##########################################################
-    def determineScan(self, mysteryDevice, mysteryEvidence, **kwargs):
+    def determineScan(self, mysteryDevice, **kwargs):
         #printD("IpIdentifier.determineScan()")
         scan = "NA"
-        mysteryEvidence = dbManager.select(E_DB_FILE, mysteryDevice)
+        mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, mysteryDevice)
 
         # Error/NA/Wait
         skips = ["NA", "Wait", "Done", False]
@@ -298,7 +302,7 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
         # if model = done, found firmware, done, either quit here or feed to global. if firmware present, set to yes/true in prepareEvidence
         # if unknown for any, exit
         if decision == "Unknown":
-            decision = self.decisionSimple(mysteryDevice, mysteryEvidence)
+            decision = self.decisionSimple(mysteryDevice)
 
         if decision in skips:
             printD("identifyIP.determineScan() - Scan non-decision: {0}".format(decision))
@@ -306,7 +310,7 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
         # valid scan/category
         else:
             # decision should be either individual scan name or category (config_scan, etc)
-            scanOrCategory = self.getScan(decision, mysteryDevice, mysteryEvidence, **kwargs)
+            scanOrCategory = self.getScan(decision, mysteryDevice, **kwargs)
             #printD("determineScan() - ip: {0}, scanOrCategory: {1}, decision: {2}".format(mysteryDevice, scanOrCategory, decision))
             printD("determineScan() - ip: {0}, decision: {1}".format(mysteryDevice, decision))
 
@@ -318,7 +322,7 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
 
             # category. get all scans under that category 
             elif scanOrCategory != "NA":
-                scanName = self.scanCategoryDecision(mysteryDevice, mysteryEvidence, decision, scanOrCategory)
+                scanName = self.scanCategoryDecision(mysteryDevice, decision, scanOrCategory)
                 printD("identifyIP.scanCategoryDecision - ip: {0}, scanCategoryDecision: {1}".format(mysteryDevice, scanName))
 
                 # ex when config_scan and multiple scans, with no device_type
@@ -337,7 +341,7 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
                     scan["PARAMS"]["SCAN_NAME"] = scanName
 
             # check sent and fill params
-            if scan != "NA" and not self.checkSent(mysteryDevice, mysteryEvidence, scan["PARAMS"]["SCAN_NAME"]):
+            if scan != "NA" and not self.checkSent(mysteryDevice, scan["PARAMS"]["SCAN_NAME"]):
                 scan = self.getScanParams(scan, mysteryDevice, mysteryEvidence, **kwargs)
             else:
                 scan = "NA"
@@ -350,7 +354,7 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
     #  if all scans in that category sent. If not, return 
     #  list of scans not sent. 
     ##########################################################
-    def checkSentPerCategory(self, mysteryDevice, mysteryEvidence, categoryName):
+    def checkSentPerCategory(self, mysteryDevice, categoryName):
         #printD("BaseMysteryEvidenceProcessor.checkSent()")
         scanSent = False
 
@@ -407,7 +411,7 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
         if len(scansList) != 0:
             scansNotSent = set()
             for scanName in scansList:
-                if not self.checkSent(mysteryDevice, mysteryEvidence, scanName):
+                if not self.checkSent(mysteryDevice, scanName):
                     scansNotSent.add(scanName)
 
         printD("identifyIP.checkSentPerCategory() - ip: {0}, categoryName: {1}, scansNotSent: {2}".format(mysteryDevice, categoryName, scansNotSent))
@@ -421,7 +425,7 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
         categoriesList = []
         keysList = []
 
-        mysteryEvidence = dbManagerNew.select_all(ENEW_DB_FILE, mysteryDevice)
+        mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, mysteryDevice)
         scanEvidence = dbManager.select(E_DB_FILE, mysteryDevice)
 
         if treeType == "global":
@@ -493,7 +497,7 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
                     preparedEvidence[categoryName] = "no"
             else:
                 printD("identifyIP.prepareEvidence() - ip: {0}, category {1} allowed".format(mysteryDevice, categoryName))
-                scansNotSent = self.checkSentPerCategory(mysteryDevice, scanEvidence, categoryName)
+                scansNotSent = self.checkSentPerCategory(mysteryDevice, categoryName)
                 if scansNotSent == None:
                     preparedEvidence[categoryName] = "no"
                 elif len(scansNotSent) > 0:

@@ -35,6 +35,7 @@
 # }}}
 
 import logging
+from setup import DBManagerNew
 logger = logging.getLogger(__name__)
 DEBUG = True
 def printD(m):
@@ -65,6 +66,7 @@ from ..common.actor import Actor
 import sqlite3
 import json
 from .Databases import dbManager
+from .Databases import dbManagerNew
 
 #from . import decision_tree_design
 from . import decisionSimple
@@ -74,6 +76,9 @@ from ipaddress import ip_address, ip_network
 from cryptography.fernet import Fernet
 
 # Database files
+NEW_E_DB_FILE = "new_e_db.sqlite" # new evidence
+NEW_EVENTS_DB_FILE = "new_events_db.sqlite" # new events
+
 E_DB_FILE = "e_db.sqlite" # evidence
 D_DB_FILE = "d_db.sqlite" # devices
 V_DB_FILE = "v_db.sqlite" # vendors
@@ -91,11 +96,12 @@ results_path = "ssasse_platform/InferenceEngine/Results/"
 profiles_path = "ssasse_platform/InerenceEngine/Profiles/"
 
 class BaseMysteryEvidenceProcessor(object):
-    def __init__(self, config, DBManager, rmq_connection):
+    def __init__(self, config, DBManager, DBManagerNew, rmq_connection):
         printD("BaseMysteryEvidenceProcessor.__init__()")
 #        super(BaseMysteryEvidenceProcessor, self).__init__(config, rmq_connection)
 
         self.DBManager = DBManager
+        self.DBManagerNew = DBManagerNew
         self.publishLock = multiprocessing.Lock()
         self.identified = "n"
         self.resultsDict = {}
@@ -130,7 +136,8 @@ class BaseMysteryEvidenceProcessor(object):
         scan = "NA"
         kwargs = dict()
         kwargs['port'] = port
-        mysteryEvidence = dbManager.select(E_DB_FILE, mysteryDevice)
+        mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, mysteryDevice)
+        allEvents = dbManagerNew.select_all(NEW_EVENTS_DB_FILE, mysteryDevice)
 
 #        def set_connection_ready():
 #           printD("ready")
@@ -143,22 +150,23 @@ class BaseMysteryEvidenceProcessor(object):
         #    gevent.sleep()
 
         # no scan outbound
-        if ("ACTIVE_SCAN_TIME" not in mysteryEvidence.keys()) or ("ACTIVE_SCAN_TIME" in mysteryEvidence.keys() and "0" in mysteryEvidence["ACTIVE_SCAN_TIME"]):
+        if ("ACTIVE_SCAN_TIME" not in allEvents.keys()) or ("ACTIVE_SCAN_TIME" in allEvents.keys() and "0" in allEvents["ACTIVE_SCAN_TIME"]):
             printD("ACTIVE_SCAN_TIME")
-            scan = self.determineScan(mysteryDevice, mysteryEvidence, **kwargs)
+            scan = self.determineScan(mysteryDevice, **kwargs)
             timeElapsed = 0
 
         # scan outbound, check timeout
         else:
             activeScanTime = 0
-            if "ACTIVE_SCAN_TIME" in mysteryEvidence.keys():
-                activeScanTime = float(mysteryEvidence["ACTIVE_SCAN_TIME"][0])
+            if "ACTIVE_SCAN_TIME" in allEvents.keys():
+                activeScanTime = float(allEvents["ACTIVE_SCAN_TIME"][0])
             timeElapsed = time.time() - activeScanTime
 
             if timeElapsed > 600:
-                self.DBManager.removeKey(E_DB_FILE, mysteryDevice, "ACTIVE_SCAN_TIME")
-                self.DBManager.insert(E_DB_FILE, mysteryDevice, {"ACTIVE_SCAN_TIME": ["0"]})
-                scan = self.determineScan(mysteryDevice, mysteryEvidence, **kwargs)
+                #self.DBManager.removeKey(E_DB_FILE, mysteryDevice, "ACTIVE_SCAN_TIME")
+                #self.DBManager.insert(E_DB_FILE, mysteryDevice, {"ACTIVE_SCAN_TIME": ["0"]})
+                self.DBManagerNew.insert(NEW_EVENTS_DB_FILE, mysteryDevice, {"ACTIVE_SCAN_TIME": ["0"]}, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Tracking - Active Scan Time")
+                scan = self.determineScan(mysteryDevice, **kwargs)
                 printD("baseProcessEvidence.infer() - Not skipping scan {0} for {1}, time elapsed {2}s".format(scan, mysteryDevice, timeElapsed))
             else:
                 printD("baseProcessEvidence.infer() - Skipping scan {0} for {1}, time elapsed only {2}s".format(scan, mysteryDevice, timeElapsed))
@@ -166,8 +174,9 @@ class BaseMysteryEvidenceProcessor(object):
         # scan going outbound
         if scan != "NA":
             printD("baseProcessEvidence.infer() - ip: {0}, chosenScan: {1}, timeElapsed: {2}".format(mysteryDevice, scan, timeElapsed))
-            self.DBManager.removeKey(E_DB_FILE, mysteryDevice, "ACTIVE_SCAN_TIME")
-            self.DBManager.insert(E_DB_FILE, mysteryDevice, {"ACTIVE_SCAN_TIME": [time.time()]})
+            #self.DBManager.removeKey(E_DB_FILE, mysteryDevice, "ACTIVE_SCAN_TIME")
+            #self.DBManager.insert(E_DB_FILE, mysteryDevice, {"ACTIVE_SCAN_TIME": [time.time()]})
+            self.DBManagerNew.insert(NEW_EVENTS_DB_FILE, mysteryDevice, {"ACTIVE_SCAN_TIME": [str(time.time())]}, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Tracking - Active Scan Time")
 
         # Determine who to send it to
         siteName = self.getSiteName(mysteryDevice)
@@ -273,7 +282,8 @@ class BaseMysteryEvidenceProcessor(object):
             event["SIGNATURE"] = [scanOrCategoryName]
             event["STATUS"] = ["Blocked"]
             event["INFO"] = ["Scan {0} not allowed via policy for IP {1}".format(scanOrCategoryName, mysteryDevice)]
-            self.DBManager.insert(EVENTS_DB_FILE, eventTimestamp, event)
+            #self.DBManager.insert(EVENTS_DB_FILE, eventTimestamp, event)
+            self.DBManagerNew.insert(NEW_EVENTS_DB_FILE, mysteryDevice, event, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Scan Blocked - Policy")
 
             #self.publish_internal("internal", {"TARGET_IPADDR": mysteryDevice, scanOrCategoryName: "No"})
             self.resultsDict["internal"].append({"TARGET_IPADDR": mysteryDevice, scanOrCategoryName: "No"})
@@ -283,14 +293,15 @@ class BaseMysteryEvidenceProcessor(object):
     # checkSent()
     # Check sent requests to see if it was already sent
     ##########################################################
-    def checkSent(self, mysteryDevice, mysteryEvidence, scanName):
+    def checkSent(self, mysteryDevice, scanName):
         #printD("BaseMysteryEvidenceProcessor.checkSent()")
         scanSent = False
-        mysteryEvidence = dbManager.select(E_DB_FILE, mysteryDevice)
+        #mysteryEvidence = dbManager.select(E_DB_FILE, mysteryDevice)
+        allEvents = dbManagerNew.select_all(NEW_EVENTS_DB_FILE, mysteryDevice)
 
         activeScansSent = []
-        if "ACTIVE_SCANS_SENT" in mysteryEvidence.keys():
-            activeScansSent = mysteryEvidence["ACTIVE_SCANS_SENT"]
+        if "ACTIVE_SCANS_SENT" in allEvents.keys():
+            activeScansSent = allEvents["ACTIVE_SCANS_SENT"]
 
         if helper.singleInList(scanName, activeScansSent) != False:
             scanSent = True
@@ -385,7 +396,7 @@ class BaseMysteryEvidenceProcessor(object):
     # getScanParams
     # fill scan object with params from evidence and return
     ##########################################################
-    def getScanParams(self, scan, mysteryDevice, mysteryEvidence, **kwargs):
+    def getScanParams(self, scan, mysteryDevice, **kwargs):
         #printD("BaseMysteryEvidenceProcessor.getScanParams()")
         mysteryEvidence = dbManager.select(E_DB_FILE, mysteryDevice)
 
@@ -404,8 +415,9 @@ class BaseMysteryEvidenceProcessor(object):
                     event["SIGNATURE"] = [scan["PARAMS"]["SCAN_NAME"]]
                     event["STATUS"] = ["Failed"]
                     event["INFO"] = ["Could not grab params for scan {0} from IP {1} evidence.".format(scan["PARAMS"]["SCAN_NAME"], mysteryDevice)]
-                    self.DBManager.insert(EVENTS_DB_FILE, eventTimestamp, event)
-                    
+                    #self.DBManager.insert(EVENTS_DB_FILE, eventTimestamp, event)
+                    self.DBManagerNew.insert(NEW_EVENTS_DB_FILE, mysteryDevice, event, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Scan Failed - Parameter Lookup")
+
                     scan = "NA"
                     break
             elif param == "DEFAULT_CREDS":
@@ -422,8 +434,9 @@ class BaseMysteryEvidenceProcessor(object):
                     event["SIGNATURE"] = [scan["PARAMS"]["SCAN_NAME"]]
                     event["STATUS"] = ["Failed"]
                     event["INFO"] = ["Could not grab default creds for scan {0} from IP {1} policy.".format(scan["PARAMS"]["SCAN_NAME"], mysteryDevice)]
-                    self.DBManager.insert(EVENTS_DB_FILE, eventTimestamp, event)                    
-                    
+                    #self.DBManager.insert(EVENTS_DB_FILE, eventTimestamp, event)                    
+                    self.DBManagerNew.insert(NEW_EVENTS_DB_FILE, mysteryDevice, event, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Scan Failed - Credential Lookup")
+
                     scan = "NA"
                     break
 
@@ -434,7 +447,7 @@ class BaseMysteryEvidenceProcessor(object):
     # this is the function that gets called in order to determine what unknown data would be impactful for the inference operation. 
     # This data will then be used to determine which scan should be fired off. 
     ##########################################################
-    def determineScan(self, mysteryDevice, mysteryEvidence, **kwargs):
+    def determineScan(self, mysteryDevice, **kwargs):
         #printD("BaseMysteryEvidenceProcessor.determineScan()")
         pass
 
@@ -459,11 +472,17 @@ class BaseMysteryEvidenceProcessor(object):
         event["SIGNATURE"] = [scan["PARAMS"]["SCAN_NAME"]]
         event["STATUS"] = ["Sent"]
         event["INFO"] = ["Awaiting response."]
-        self.DBManager.insert(EVENTS_DB_FILE, eventTimestamp, event)
+        #self.DBManager.insert(EVENTS_DB_FILE, eventTimestamp, event)
+        self.DBManagerNew.insert(NEW_EVENTS_DB_FILE, mysteryDevice, event, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Active Request")
+
         #self.publish_internal("internal", {"TARGET_IPADDR": mysteryDevice, scan["PARAMS"]["SCAN_NAME"]: "yes"})
         self.resultsDict["internal"].append({"TARGET_IPADDR": mysteryDevice, scan["PARAMS"]["SCAN_NAME"]: "yes"})
 
-        printD("baseProcessEvidence.requestScan() - ip: {0}, sending request: {1}, {2}, sentScans: {3}".format(mysteryDevice, scan["PARAMS"], siteName, dbManager.select(E_DB_FILE, mysteryDevice).get("ACTIVE_SCANS_SENT", [])))
-        self.DBManager.insert(E_DB_FILE, mysteryDevice, {"ACTIVE_SCANS_SENT": [scan["PARAMS"]["SCAN_NAME"]]})
+        #printD("baseProcessEvidence.requestScan() - ip: {0}, sending request: {1}, {2}, sentScans: {3}".format(mysteryDevice, scan["PARAMS"], siteName, dbManager.select(E_DB_FILE, mysteryDevice).get("ACTIVE_SCANS_SENT", [])))
+        printD("baseProcessEvidence.requestScan() - ip: {0}, sending request: {1}, {2}, sentScans: {3}".format(mysteryDevice, scan["PARAMS"], siteName, dbManagerNew.select_all(NEW_EVENTS_DB_FILE, mysteryDevice).get("ACTIVE_SCANS_SENT", [])))
+        
+        #self.DBManager.insert(E_DB_FILE, mysteryDevice, {"ACTIVE_SCANS_SENT": [scan["PARAMS"]["SCAN_NAME"]]})
+        self.DBManagerNew.insert(NEW_EVENTS_DB_FILE, mysteryDevice, {"ACTIVE_SCANS_SENT": [scan["PARAMS"]["SCAN_NAME"]]}, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Active Request")
+
         #self.publish_request("active.requests.{0}".format(siteName), scan["PARAMS"])
         self.resultsDict["external"].append({"ACTIVE_REQUEST_STRING": "active.requests.{0}".format(siteName), "SCAN": scan["PARAMS"]})

@@ -42,6 +42,7 @@ from .. import helper
 # DB file
 sqlite_path = "ssasse_platform/InferenceEngine/Databases/"
 known_columns = ["TARGET_IPADDR", "DEST_IPADDR", "TARGET_MACADDR", "DEST_MACADDR", "SOURCE_PORT", "DEST_PORT", "PROTOCOL", "PROTOCOL_FUNCTION_CODE"]
+unique_columns = ["ACTIVE_SCAN_TIME", "PROCESSING"]
 
 import logging
 logger = logging.getLogger(__name__)
@@ -125,6 +126,8 @@ class DBManager():
 
             newEvidenceDict = {}
             allEvidenceDictBefore = select_all(sqlite_file,ip)
+            for column in unique_columns:
+                allEvidenceDictBefore.pop(column, None)
             allEvidenceDictAfter = allEvidenceDictBefore
 
             for key,value in attributeDict.items():

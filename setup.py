@@ -53,7 +53,8 @@ database_path = "ssasse_platform/InferenceEngine/Databases/"
 profiles_path = "ssasse_platform/InferenceEngine/Profiles/"
 
 # Create fresh databases
-ENEW_DB_FILE = "enew_db.sqlite" # new evidence
+NEW_E_DB_FILE = "new_e_db.sqlite" # new evidence
+NEW_EVENTS_DB_FILE = "new_events_db.sqlite" # new events
 
 E_DB_FILE = "e_db.sqlite" # evidence
 D_DB_FILE = "d_db.sqlite" # devices
@@ -66,7 +67,9 @@ R_DB_FILE = "r_db.sqlite" # requests/notifications
 DBManager = dbManager.DBManager()
 DBManagerNew = dbManagerNew.DBManager()
 
-DBManagerNew.create(ENEW_DB_FILE)
+DBManagerNew.create(NEW_E_DB_FILE)
+DBManagerNew.create(NEW_EVENTS_DB_FILE)
+
 DBManager.create(E_DB_FILE)
 DBManager.create(D_DB_FILE)
 DBManager.create(V_DB_FILE)

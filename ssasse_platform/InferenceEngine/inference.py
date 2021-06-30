@@ -94,7 +94,9 @@ from . import identifyVulnerabilities
 from .identifyIP import IpIdentifier
 
 # Database files
-ENEW_DB_FILE = "enew_db.sqlite" # new evidence
+NEW_E_DB_FILE = "new_e_db.sqlite" # new evidence
+NEW_EVENTS_DB_FILE = "new_events_db.sqlite" # new events
+
 E_DB_FILE = "e_db.sqlite" # evidence
 D_DB_FILE = "d_db.sqlite" # devices
 V_DB_FILE = "v_db.sqlite" # vendors
@@ -131,8 +133,8 @@ class DeviceIdentificationEngine(Actor):
         self.DBManager = dbManager.DBManager()
         self.DBManagerNew = dbManagerNew.DBManager()
 
-        self.IpIdentifier = identifyIP.IpIdentifier(self.config, self.DBManager, None)
-        self.ServiceProcessor = identifyVulnerabilities.ServiceProcessor(self.config, self.DBManager, None)
+        self.IpIdentifier = identifyIP.IpIdentifier(self.config, self.DBManager, self.DBManagerNew, None)
+        self.ServiceProcessor = identifyVulnerabilities.ServiceProcessor(self.config, self.DBManager, self.DBManagerNew, None)
         #self.processEvidenceGreenlet = gevent.spawn(self.geventLoop)
         thread.start()
         gevent.spawn(self.setup_subscriptions)
@@ -202,8 +204,10 @@ class DeviceIdentificationEngine(Actor):
                     printD("PING Adding IP to receiveEvidence: IP: {}, msg: {}".format(ip, msg))
                     self.receiveEvidence(msg, fromWho)
         else:
-            self.DBManager.removeKey(E_DB_FILE, mysteryDevice, "ACTIVE_SCAN_TIME")
-            self.DBManager.insert(E_DB_FILE, mysteryDevice, {"ACTIVE_SCAN_TIME": ["0"]})
+            #self.DBManager.removeKey(E_DB_FILE, mysteryDevice, "ACTIVE_SCAN_TIME")
+            #self.DBManager.insert(E_DB_FILE, mysteryDevice, {"ACTIVE_SCAN_TIME": ["0"]})
+            self.DBManagerNew.insert(NEW_EVENTS_DB_FILE, mysteryDevice, {"ACTIVE_SCAN_TIME": ["0"]}, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Tracking - Active Scan Time")
+
             self.receiveEvidence(message, fromWho)
         #self.receiveQueue.put((message, fromWho))
 
@@ -273,8 +277,9 @@ class DeviceIdentificationEngine(Actor):
     #
     #####
     def identifyProcess(self, mysteryDevice):
-        self.DBManager.insert(E_DB_FILE, mysteryDevice, {"PROCESSING": ["y"]})
-        self.DBManager.removeVal(E_DB_FILE, mysteryDevice, "PROCESSING", "n")
+        #self.DBManager.insert(E_DB_FILE, mysteryDevice, {"PROCESSING": ["y"]})
+        #self.DBManager.removeVal(E_DB_FILE, mysteryDevice, "PROCESSING", "n")
+        self.DBManagerNew.insert(NEW_EVENTS_DB_FILE, mysteryDevice, {"PROCESSING": "y"}, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Tracking - Processing")
 
         p = multiprocessing.Process(target=self.spawnIdentifyProcess, args=[mysteryDevice])
         p.start()
@@ -293,8 +298,9 @@ class DeviceIdentificationEngine(Actor):
                 #self.publishActor.publish_request(external["ACTIVE_REQUEST_STRING"], external["SCAN"])
                 self.publish_messages.append((external["ACTIVE_REQUEST_STRING"], external["SCAN"]))
 
-            self.DBManager.insert(E_DB_FILE, mysteryDevice, {"PROCESSING": ["n"]})
-            self.DBManager.removeVal(E_DB_FILE, mysteryDevice, "PROCESSING", "y")
+            #self.DBManager.insert(E_DB_FILE, mysteryDevice, {"PROCESSING": ["n"]})
+            #self.DBManager.removeVal(E_DB_FILE, mysteryDevice, "PROCESSING", "y")
+            self.DBManagerNew.insert(NEW_EVENTS_DB_FILE, mysteryDevice, {"PROCESSING": "n"}, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Tracking - Processing")
 
     ##########################################################
     # startNmapScan: 
@@ -318,8 +324,9 @@ class DeviceIdentificationEngine(Actor):
     # identifyVulnerability: 
     ##########################################################
     def identifyVulnerability(self, device, port, service):
-        self.DBManager.insert(E_DB_FILE, device, {"PROCESSING": ["y"]})
-        self.DBManager.removeVal(E_DB_FILE, device, "PROCESSING", "n")
+        #self.DBManager.insert(E_DB_FILE, device, {"PROCESSING": ["y"]})
+        #self.DBManager.removeVal(E_DB_FILE, device, "PROCESSING", "n")
+        self.DBManagerNew.insert(NEW_EVENTS_DB_FILE, device, {"PROCESSING": "y"}, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Tracking - Processing")
 
         prevStatus = {}
         identified = 'n'
@@ -365,8 +372,9 @@ class DeviceIdentificationEngine(Actor):
                 ip_port = "{}_{}".format(mysteryDevice, port)
                 self.DBManager.insert(S_DB_FILE, "VULN_IDENTIFIED", {"IP_PORT": [ip_port]})
 
-            self.DBManager.insert(E_DB_FILE, mysteryDevice, {"PROCESSING": ["n"]})
-            self.DBManager.removeVal(E_DB_FILE, mysteryDevice, "PROCESSING", "y")
+            #self.DBManager.insert(E_DB_FILE, mysteryDevice, {"PROCESSING": ["n"]})
+            #self.DBManager.removeVal(E_DB_FILE, mysteryDevice, "PROCESSING", "y")
+            self.DBManagerNew.insert(NEW_EVENTS_DB_FILE, mysteryDevice, {"PROCESSING": "n"}, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Tracking - Processing")
             vulnProtocols = self.getVulnerabilityPorts(mysteryDevice)
             printD("SN: ***IdentifiedVulnerabilities device: {}, ports: {}".format(mysteryDevice, vulnProtocols))
             #printD("Identified Vulnerabilities: {}".format(self.identifiedVulnerabilities))
@@ -435,7 +443,8 @@ class DeviceIdentificationEngine(Actor):
         mysteryDevice = False
         for mD in dbManager.select(S_DB_FILE, "ID_QUEUE").get("IP", []):
             mysteryEvidence = dbManager.select(E_DB_FILE, mD)
-            if self.ipInPolicy(mD) and (("PROCESSING" not in mysteryEvidence.keys()) or ("PROCESSING" in mysteryEvidence.keys() and "n" in mysteryEvidence["PROCESSING"] and "y" not in mysteryEvidence["PROCESSING"])):
+            allEvents = dbManagerNew.select_all(NEW_EVENTS_DB_FILE, mD)
+            if self.ipInPolicy(mD) and (("PROCESSING" not in allEvents.keys()) or ("PROCESSING" in allEvents.keys() and "n" in allEvents["PROCESSING"] and "y" not in allEvents["PROCESSING"])):
                 mysteryDevice = mD
                 break
 
@@ -445,7 +454,8 @@ class DeviceIdentificationEngine(Actor):
             devices = dbManager.allIdentifiers(E_DB_FILE)
             for mD in devices:
                 mysteryEvidence = dbManager.select(E_DB_FILE, mD)
-                if self.ipInPolicy(mD) and "ACTIVE_SCAN_TIME" in mysteryEvidence.keys() and "0" not in mysteryEvidence["ACTIVE_SCAN_TIME"] and mysteryDevice not in dbManager.select(S_DB_FILE, "IDENTIFIED").get("IP", []):
+                allEvents = dbManagerNew.select_all(NEW_EVENTS_DB_FILE, mD)
+                if self.ipInPolicy(mD) and "ACTIVE_SCAN_TIME" in allEvents.keys() and "0" not in allEvents["ACTIVE_SCAN_TIME"] and mysteryDevice not in dbManager.select(S_DB_FILE, "IDENTIFIED").get("IP", []):
                     mysteryDevice = mD
                     break
 
@@ -541,7 +551,8 @@ class DeviceIdentificationEngine(Actor):
 
             mD, port, service = ip_port_service.split('|')
             mysteryEvidence = dbManager.select(E_DB_FILE, mD)
-            if ("PROCESSING" not in mysteryEvidence.keys()) or ("PROCESSING" in mysteryEvidence.keys() and "n" in mysteryEvidence["PROCESSING"] and "y" not in mysteryEvidence["PROCESSING"]):
+            allEvents = dbManagerNew.select_all(NEW_EVENTS_DB_FILE, mD)
+            if ("PROCESSING" not in allEvents.keys()) or ("PROCESSING" in allEvents.keys() and "n" in allEvents["PROCESSING"] and "y" not in allEvents["PROCESSING"]):
                 mysteryDevice = mD
                 IP_PORT_SERVICE = ip_port_service
                 break
@@ -552,8 +563,10 @@ class DeviceIdentificationEngine(Actor):
             devices = dbManager.allIdentifiers(E_DB_FILE)
             for mD in devices:
 
-                mysteryEvidence = dbManager.select(E_DB_FILE, mD)
-                if "ACTIVE_SCAN_TIME" in mysteryEvidence.keys() and "0" not in mysteryEvidence["ACTIVE_SCAN_TIME"] and "nmap_service_scan" in dbManager.select(E_DB_FILE, mD).get("SCAN_NAME", []):
+                #mysteryEvidence = dbManager.select(E_DB_FILE, mD)
+                mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, mD)
+                allEvents = dbManagerNew.select_all(NEW_EVENTS_DB_FILE, mD)
+                if "ACTIVE_SCAN_TIME" in allEvents.keys() and "0" not in allEvents["ACTIVE_SCAN_TIME"] and "nmap_service_scan" in mysteryEvidence.get("SCAN_NAME", []):
 
                     #mysteryDevice = mD
                     protocols = self.getProtocols(mD)
@@ -590,7 +603,7 @@ class DeviceIdentificationEngine(Actor):
     # Get Ports from evidence, vendor profile and device profile
     ##########################################################
     def getProtocols(self, mysteryDevice):
-        mysteryEvidence = dbManagerNew.select_all(ENEW_DB_FILE, mysteryDevice)
+        mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, mysteryDevice)
         #printD("getPorts: {}".format(mysteryEvidence))
         vendor = mysteryEvidence.get('VENDOR', None)
         #if vendor is None or vendor[0].upper() not in ['SEL', 'GE']:
@@ -856,6 +869,7 @@ class DeviceIdentificationEngine(Actor):
                     event["STATUS"] = ["Results Received"]
                 event["INFO"] = [json.dumps(newEvidence)]
                 self.DBManager.insert(EVENTS_DB_FILE, eventTimestamp, event)
+                self.DBManagerNew.insert(NEW_EVENTS_DB_FILE, mysteryDevice, event, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), event["TYPE"][0])
 
             printD("inference inserting new evidence for ip {0}".format(mysteryDevice))
 
@@ -866,7 +880,7 @@ class DeviceIdentificationEngine(Actor):
                 evidenceType = "Passive"
             if "Active" in fromWho:
                 evidenceType = "Active"
-            self.DBManagerNew.insert(ENEW_DB_FILE, mysteryDevice, newEvidence, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), evidenceType)
+            self.DBManagerNew.insert(NEW_E_DB_FILE, mysteryDevice, newEvidence, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), evidenceType)
 
             # check if NA vendor needs to be removed
             if "VENDOR" in newEvidence.keys() and "NA" not in newEvidence["VENDOR"]:
@@ -883,7 +897,7 @@ class DeviceIdentificationEngine(Actor):
                 if "DEVICE_TYPE" in deviceProfile.keys():
                     newEvidence["DEVICE_TYPE"] = deviceProfile["DEVICE_TYPE"]
                     self.DBManager.insert(E_DB_FILE, mysteryDevice, newEvidence)
-                    self.DBManagerNew.insert(ENEW_DB_FILE, mysteryDevice, newEvidence, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), ((("Active", "Passive")["Active" in fromWho]), "Internal")["Passive" in fromWho or "Active" in fromWho])
+                    self.DBManagerNew.insert(NEW_E_DB_FILE, mysteryDevice, newEvidence, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), ((("Active", "Passive")["Active" in fromWho]), "Internal")["Passive" in fromWho or "Active" in fromWho])
 
             # add IP to queue to be processed
             printD("receive before() - ID_QUEUE: {0}".format(dbManager.select(S_DB_FILE, "ID_QUEUE").get("IP", [])))
@@ -911,7 +925,7 @@ class DeviceIdentificationEngine(Actor):
 
                 # check if certain scan "nmap_service_scan" came back
                 scanName = "nmap_service_scan"
-                if scanName in dbManager.select(E_DB_FILE, mysteryDevice).get("SCAN_NAME", []):
+                if scanName in dbManagerNew.select_all(NEW_E_DB_FILE, mysteryDevice).get("SCAN_NAME", []):
                     printD("SN: nmap_service_scan received. mysteryDevice: {}, new evidence: {}".format(mysteryDevice, newEvidence))
 
                     # Check if port done with vulnerabilities check
