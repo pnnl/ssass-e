@@ -106,7 +106,7 @@ S_DB_FILE = "s_db.sqlite" # status
 R_DB_FILE = "r_db.sqlite" # requests
 
 # Ignore IP List
-IGNORE_IPS = ["172.17.130.29", "172.16.101.151", "172.16.100.241", "172.17.0.31", "172.17.0.17"]
+IGNORE_IPS = []
 
 # Paths
 scans_path = "ssasse_platform/InferenceEngine/Scans/"
@@ -167,8 +167,6 @@ class DeviceIdentificationEngine(Actor):
 
     def evidence_callback(self, topic, message):
         #printD("InferenceEngine.evidence_callback() - ip: {0}, evidence callback: {1}, {2}, CTR:{3}".format(message.get("TARGET_IPADDR", None), topic, message, message["CTR"]))
-        #if message["TARGET_IPADDR"] == "172.17.0.65":
-        #    printD("InferenceEngine.evidence_callback() - ip: {0}, evidence callback: {1}, {2}, CTR:{3}".format(message.get("TARGET_IPADDR", None), topic, message, message["CTR"]))
         self.receiveEvidence(message, "Passive")
         #self.receiveQueue.put((message, "Passive"))
 
