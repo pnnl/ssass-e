@@ -332,7 +332,7 @@ class BaseMysteryEvidenceProcessor(object):
     # checks if policy allows it
     # returns either scan dict or category dict containing scans
     ##########################################################
-    def getScan(self, scanOrCategoryName, mysteryDevice, mysteryEvidence, **kwargs):
+    def getScan(self, scanOrCategoryName, mysteryDevice, **kwargs):
         #printD("BaseMysteryEvidenceProcessor.getScan()")
         scanOrCategory = "NA"
 
@@ -398,7 +398,7 @@ class BaseMysteryEvidenceProcessor(object):
     ##########################################################
     def getScanParams(self, scan, mysteryDevice, **kwargs):
         #printD("BaseMysteryEvidenceProcessor.getScanParams()")
-        mysteryEvidence = dbManager.select(E_DB_FILE, mysteryDevice)
+        mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, mysteryDevice)
 
         for param in scan["PARAMS"].keys():
             if param != "SCAN_NAME" and param != "DEFAULT_CREDS":

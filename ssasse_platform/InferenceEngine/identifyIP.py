@@ -336,13 +336,13 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
 
                 else:
                     # go get params (empty params) 
-                    scan = self.getScan(scanName, mysteryDevice, mysteryEvidence, **kwargs)
+                    scan = self.getScan(scanName, mysteryDevice, **kwargs)
                     printD("SN: getScan: {}".format(scan))
                     scan["PARAMS"]["SCAN_NAME"] = scanName
 
             # check sent and fill params
             if scan != "NA" and not self.checkSent(mysteryDevice, scan["PARAMS"]["SCAN_NAME"]):
-                scan = self.getScanParams(scan, mysteryDevice, mysteryEvidence, **kwargs)
+                scan = self.getScanParams(scan, mysteryDevice, **kwargs)
             else:
                 scan = "NA"
 
@@ -358,7 +358,7 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
         #printD("BaseMysteryEvidenceProcessor.checkSent()")
         scanSent = False
 
-        scanCategory = self.getScan(categoryName, mysteryDevice, dbManager.select(E_DB_FILE, mysteryDevice))
+        scanCategory = self.getScan(categoryName, mysteryDevice)
         # recursively parse scans json to look for keys/scan names
 
         protocolList = ["dnp3", "modbus", "rocplus"]
