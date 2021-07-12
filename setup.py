@@ -56,11 +56,9 @@ profiles_path = "ssasse_platform/InferenceEngine/Profiles/"
 NEW_E_DB_FILE = "new_e_db.sqlite" # new evidence
 NEW_EVENTS_DB_FILE = "new_events_db.sqlite" # new events
 
-E_DB_FILE = "e_db.sqlite" # evidence
 D_DB_FILE = "d_db.sqlite" # devices
 V_DB_FILE = "v_db.sqlite" # vendors
 VULN_DB_FILE = "vuln_db.sqlite" # vulnerabilities
-EVENTS_DB_FILE = "events_db.sqlite" # events
 S_DB_FILE = "s_db.sqlite" # status
 R_DB_FILE = "r_db.sqlite" # requests/notifications
 
@@ -70,11 +68,9 @@ DBManagerNew = dbManagerNew.DBManager()
 DBManagerNew.create(NEW_E_DB_FILE)
 DBManagerNew.create(NEW_EVENTS_DB_FILE)
 
-DBManager.create(E_DB_FILE)
 DBManager.create(D_DB_FILE)
 DBManager.create(V_DB_FILE)
 DBManager.create(VULN_DB_FILE)
-DBManager.create(EVENTS_DB_FILE)
 DBManager.create(S_DB_FILE)
 DBManager.create(R_DB_FILE)
 

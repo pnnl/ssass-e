@@ -69,7 +69,6 @@ except ImportError:
 
 import sqlite3
 import json
-from .Databases import dbManager
 from .Databases import dbManagerNew
 
 #from . import decision_tree_design
@@ -80,11 +79,6 @@ from . import helper
 NEW_E_DB_FILE = "new_e_db.sqlite" # new evidence
 NEW_EVENTS_DB_FILE = "new_events_db.sqlite" # new events
 
-E_DB_FILE = "e_db.sqlite" # evidence
-D_DB_FILE = "d_db.sqlite" # devices
-V_DB_FILE = "v_db.sqlite" # vendors
-VULN_DB_FILE = "vuln_db.sqlite" # vulnerabilities
-EVENTS_DB_FILE = "events_db.sqlite" # events
 MANUF_FILE = "manuf.txt"
 
 # Scan files
@@ -243,20 +237,19 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
     def decisionSimple(self, mysteryDevice):
         categoryOrder = ["OUI_Lookup", "config_scan", "scada_scan", "tcp_scan", "network_scan"]
         chosenCategory = "NA"
-        scanEvidence = dbManager.select(E_DB_FILE, mysteryDevice)
         mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, mysteryDevice)
 
-        if "TARGET_MACADDR" in scanEvidence:
-            if not helper.singleInList("OUI_Lookup", scanEvidence.keys()):
+        if "TARGET_MACADDR" in mysteryEvidence:
+            if not helper.singleInList("OUI_Lookup", mysteryEvidence.keys()):
                 chosenCategory = "OUI_Lookup"
 
             elif "VENDOR" in mysteryEvidence.keys() and helper.singleInList(mysteryEvidence["VENDOR"][0], known_scada_vendors) != False:
                 for categoryName in categoryOrder:
-                    if not helper.singleInList(categoryName, scanEvidence.keys()) and self.checkSentPerCategory(mysteryDevice, categoryName) != None and len(self.checkSentPerCategory(mysteryDevice, categoryName)) > 0:
+                    if not helper.singleInList(categoryName, mysteryEvidence.keys()) and self.checkSentPerCategory(mysteryDevice, categoryName) != None and len(self.checkSentPerCategory(mysteryDevice, categoryName)) > 0:
                         chosenCategory = categoryName
                         break
 
-        printD("identifyIP.decisionSimple() - ip: {0}, chosenScan: {1}, evidence: {2}, scanEvidence: {3}".format(mysteryDevice, chosenCategory, mysteryEvidence, scanEvidence))
+        printD("identifyIP.decisionSimple() - ip: {0}, chosenScan: {1}, evidence: {2}".format(mysteryDevice, chosenCategory, mysteryEvidence))
         return chosenCategory
 
 
@@ -364,7 +357,7 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
         protocolList = ["dnp3", "modbus", "rocplus"]
         scansList = []
 
-        mysteryEvidence = dbManager.select(E_DB_FILE, mysteryDevice)
+        mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, mysteryDevice)
 
         if categoryName == "config_scan":
             if "VENDOR" in mysteryEvidence.keys():
@@ -426,8 +419,7 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
         keysList = []
 
         mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, mysteryDevice)
-        scanEvidence = dbManager.select(E_DB_FILE, mysteryDevice)
-
+        
         if treeType == "global":
             categoriesList = ["tcp_scan"]
 
@@ -486,7 +478,7 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
             if not self.checkPolicy(mysteryDevice, categoryName):
                 printD("identifyIP.prepareEvidence() - ip: {0}, category {1} set to no because of policy".format(mysteryDevice, categoryName))
                 preparedEvidence[categoryName] = "no"
-            elif helper.singleInList(categoryName, scanEvidence.keys()) and scanEvidence[helper.singleInList(categoryName, scanEvidence.keys())][0] == "no":
+            elif helper.singleInList(categoryName, mysteryEvidence.keys()) and mysteryEvidence[helper.singleInList(categoryName, mysteryEvidence.keys())][0] == "no":
                 if categoryName == "config_scan":
                     if "DEVICE_TYPE" in mysteryEvidence.keys():
                         preparedEvidence[categoryName] = "empty"

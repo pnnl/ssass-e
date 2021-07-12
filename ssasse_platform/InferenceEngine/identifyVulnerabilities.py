@@ -227,8 +227,7 @@ class ServiceProcessor(BaseMysteryEvidenceProcessor):
                 event["SIGNATURE"] = [scan["PARAMS"]["SCAN_NAME"]]
                 event["STATUS"] = ["Failed"]
                 event["INFO"] = ["Could not grab params for scan {0} from IP {1} evidence.".format(scan["PARAMS"]["SCAN_NAME"], mysteryDevice)]
-                #self.DBManager.insert(EVENTS_DB_FILE, eventTimestamp, event)
-                self.DBManagerNew.insert(NEW_EVENTS_DB_FILE, mysteryDevice, event, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Scan Failed - Parameter Lookup")
+                self.DBManagerNew.insert(NEW_EVENTS_DB_FILE, mysteryDevice, event, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Vulnerability")
 
                 scan = "NA"
                 break
@@ -242,7 +241,7 @@ class ServiceProcessor(BaseMysteryEvidenceProcessor):
     ##########################################################
     def determineScan(self, deviceIP, **kwargs):
         port = kwargs['port']
-        mysteryEvidence = dbManager.select(E_DB_FILE, deviceIP)
+        mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, deviceIP)
         #self.counter += 1
         #printD("New evidence to determineScan: {}".format(mysteryEvidence))
         evidence = {}
@@ -319,8 +318,7 @@ class ServiceProcessor(BaseMysteryEvidenceProcessor):
             event["SIGNATURE"] = ["{} on port {}".format(scan["PARAMS"]["SCAN_NAME"], port)]
             event["STATUS"] = ["Sent"]
             event["INFO"] = ["Awaiting response."]
-            #self.DBManager.insert(EVENTS_DB_FILE, eventTimestamp, event)
-            self.DBManagerNew.insert(NEW_EVENTS_DB_FILE, deviceIP, event, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Scan Determined")
+            self.DBManagerNew.insert(NEW_EVENTS_DB_FILE, deviceIP, event, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Vulnerability")
             
             #self.publish_internal("internal", {"TARGET_IPADDR": deviceIP, decision: "Yes"})
             self.resultsDict["internal"].append({"TARGET_IPADDR": deviceIP, decision: "yes"})
@@ -476,12 +474,6 @@ class ServiceProcessor(BaseMysteryEvidenceProcessor):
         return resultsDict
 
     def requestScan(self, mysteryDevice, scan, siteName):
-        #printD("baseProcessEvidence.requestScan() - ip: {0}, sending request: {1}, {2}, sentScans: {3}".format(mysteryDevice, scan["PARAMS"], siteName, dbManager.select(E_DB_FILE, mysteryDevice).get("ACTIVE_SCANS_SENT", [])))
         printD("baseProcessEvidence.requestScan() - ip: {0}, sending request: {1}, {2}, sentScans: {3}".format(mysteryDevice, scan["PARAMS"], siteName, dbManagerNew.select_all(NEW_EVENTS_DB_FILE, mysteryDevice).get("ACTIVE_SCANS_SENT", [])))        
-
-        #self.DBManager.insert(E_DB_FILE, mysteryDevice, {"ACTIVE_SCANS_SENT": [scan["PARAMS"]["SCAN_NAME"]]})
-        self.DBManagerNew.insert(NEW_EVENTS_DB_FILE, mysteryDevice, {"ACTIVE_SCANS_SENT": [scan["PARAMS"]["SCAN_NAME"]]}, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Active Request")
-
-        #self.publish_request("active.requests.{0}".format(siteName), scan["PARAMS"])
+        self.DBManagerNew.insert(NEW_EVENTS_DB_FILE, mysteryDevice, {"ACTIVE_SCANS_SENT": [scan["PARAMS"]["SCAN_NAME"]]}, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Vulnerability")
         self.resultsDict["external"].append({"ACTIVE_REQUEST_STRING": "active.requests.{0}".format(siteName), "SCAN": scan["PARAMS"]})
-
