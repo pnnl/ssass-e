@@ -53,7 +53,6 @@ import datetime
 
 from ssasse_platform.InferenceEngine.baseProcessEvidence import BaseMysteryEvidenceProcessor
 
-from .Databases import dbManager
 from .Databases import dbManagerNew
 #from . import service_decision_tree
 from ssasse_platform.InferenceEngine.serviceDecisionTree import ServicesDecisionTree
@@ -69,12 +68,9 @@ def printD(m):
 # Database files
 NEW_E_DB_FILE = "new_e_db.sqlite" # new evidence
 NEW_EVENTS_DB_FILE = "new_events_db.sqlite" # new events
-
-E_DB_FILE = "e_db.sqlite" # evidence
-D_DB_FILE = "d_db.sqlite" # devices
-V_DB_FILE = "v_db.sqlite" # vendors
-VULN_DB_FILE = "vuln_db.sqlite" # vulnerabilities
-EVENTS_DB_FILE = "events_db.sqlite" # events
+NEW_D_DB_FILE = "new_d_db.sqlite" # new devices
+NEW_V_DB_FILE = "new_v_db.sqlite" # new vendors
+NEW_VULN_DB_FILE = "new_vuln_db.sqlite" # new vulnerabilities
 
 # Paths
 database_path = "ssasse_platform/InferenceEngine/Databases/"
@@ -158,9 +154,9 @@ vulnerability_decisions = ["SERVICE_NOT_RUNNING", "SERVICE_IS_RUNNING", "ANONYMO
 "DNP3_SINGLE_MASTER_ACCESS"]
 
 class ServiceProcessor(BaseMysteryEvidenceProcessor):
-    def __init__(self, config, DBManager, DBManagerNew, rmq_connection):
+    def __init__(self, config, DBManagerNew, rmq_connection):
         printD("ServiceProcessor.__init__()")
-        super(ServiceProcessor, self).__init__(config, DBManager, DBManagerNew, rmq_connection)
+        super(ServiceProcessor, self).__init__(config, DBManagerNew, rmq_connection)
         self.port = None
         self.processingServices = {}
         self.identifiedVulnerabilities = {}
@@ -257,7 +253,7 @@ class ServiceProcessor(BaseMysteryEvidenceProcessor):
         if decision not in ["nmap_service_scan", "PORT_NOT_OPEN"]:
             vulnDict = vulnerabilityIDMapping["PORT_OPEN"]
             vulnDict["DESCRIPTION"] = vulnDict["DESCRIPTION"].format(self.service, port)
-            self.DBManager.insertVulnerabilityTableEntry(E_DB_FILE, VULN_DB_FILE, deviceIP, vulnDict)
+            self.DBManagerNew.insertVulnerabilityTableEntry(NEW_E_DB_FILE, NEW_VULN_DB_FILE, deviceIP, vulnDict)
 
         # valid scan actions, 
         if decision in ["nmap_service_scan", "FTP_default_cred_Check", "TELNET_default_cred_Check", "HTTP_default_credential_Check", "dnp3_request_link_status"]:
@@ -286,7 +282,7 @@ class ServiceProcessor(BaseMysteryEvidenceProcessor):
             
             vulnDict = vulnerabilityIDMapping[decision]
             vulnDict["DESCRIPTION"] = vulnDict["DESCRIPTION"].format(self.service, port)
-            self.DBManager.insertVulnerabilityTableEntry(E_DB_FILE, VULN_DB_FILE, deviceIP, vulnDict)
+            self.DBManagerNew.insertVulnerabilityTableEntry(NEW_E_DB_FILE, NEW_VULN_DB_FILE, deviceIP, vulnDict)
 
         elif decision in vulnerability_decisions:
             if evidence["SERVICE_RUNNING"] == "dnp":
@@ -303,7 +299,7 @@ class ServiceProcessor(BaseMysteryEvidenceProcessor):
             
             vulnDict = vulnerabilityIDMapping[decision]
             vulnDict["DESCRIPTION"] = vulnDict["DESCRIPTION"].format(service, port)
-            self.DBManager.insertVulnerabilityTableEntry(E_DB_FILE, VULN_DB_FILE, deviceIP, vulnDict)
+            self.DBManagerNew.insertVulnerabilityTableEntry(NEW_E_DB_FILE, NEW_VULN_DB_FILE, deviceIP, vulnDict)
 
         #Error
         elif decision == "NA":

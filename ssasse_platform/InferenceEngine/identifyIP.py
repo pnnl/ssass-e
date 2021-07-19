@@ -118,9 +118,9 @@ known_scada_vendors = ["GE", "SEL", "SCHNEIDER", "EMERSON", "REDLIONINC", "SIEME
 printD(type(known_scada_vendors))
 
 class IpIdentifier(BaseMysteryEvidenceProcessor):
-    def __init__(self, config, DBManager, DBManagerNew, rmq_connection):
+    def __init__(self, config, DBManagerNew, rmq_connection):
         printD("IpIdentifier.__init__()")
-        super(IpIdentifier, self).__init__(config, DBManager, DBManagerNew, rmq_connection)
+        super(IpIdentifier, self).__init__(config, DBManagerNew, rmq_connection)
 
 
     def scanCategoryDecision(self, mysteryDevice, categoryName, scanCategory):

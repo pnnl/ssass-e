@@ -53,18 +53,13 @@ import datetime
 
 scans_path = "ssasse_platform/InferenceEngine/Scans/"
 
-#E_DB_FILE = "e_db.sqlite" # evidence
-#D_DB_FILE = "d_db.sqlite" # devices
-#V_DB_FILE = "v_db.sqlite" # vendors
-#VULN_DB_FILE = "vuln_db.sqlite" # vulnerabilities
-#EVENTS_DB_FILE = "events_db.sqlite" # events
-#R_DB_FILE = "r_db.sqlite" # requests
-
 NEW_E_DB_FILE = "new_e_db.sqlite"
 NEW_EVENTS_DB_FILE = "new_events_db.sqlite"
+NEW_D_DB_FILE = "new_d_db.sqlite" 
+NEW_V_DB_FILE = "new_v_db.sqlite" 
+NEW_VULN_DB_FILE = "new_vuln_db.sqlite"
 
 from ssasse_platform.InferenceEngine.Databases import dbManagerNew
-from ssasse_platform.InferenceEngine.Databases import dbManager
 
 from ssasse_platform.InferenceEngine import helper
 from ssasse_platform.InferenceEngine import similarityScore
@@ -360,7 +355,8 @@ def getDetails(deviceIP):
         if helper.singleInList("low", vulnerability["SEVERITY"]):
             details["LOW_VULNS"] = details["LOW_VULNS"] + 1
 
-    details["CHARTS"] = getCharts(deviceIP, evidence)
+    #details["CHARTS"] = getCharts(deviceIP, evidence)
+    details["CHARTS"] = {}
     details["TIMELINES"] = getTimelines(deviceIP)
     return details
 
@@ -457,18 +453,14 @@ def getTimelines(deviceIP):
     timelines["IDENTIFICATION"] = {}
     timelines["VULNERABILITY"] = {}
 
-    allEvents = dbManagerNew.allIPs(NEW_EVENTS_DB_FILE)
-    for eventID in allEvents:
-        event = dbManagerNew.select_all(NEW_EVENTS_DB_FILE, eventID)
-        if "TARGET_IPADDR" in event.keys() and deviceIP in event["TARGET_IPADDR"]:
-            if "TYPE" in event.keys() and "IDENTIFICATION" in event["TYPE"]:
-                timelines["IDENTIFICATION"][eventID] = event
-            if "TYPE" in event.keys() and "VULNERABILITY" in event["TYPE"]:
-                timelines["VULNERABILITY"][eventID] = event
+    allEvents = dbManagerNew.select_all(NEW_EVENTS_DB_FILE, deviceIP)
+    for event in allEvents:
+        if "TYPE" in event.keys() and "IDENTIFICATION" in event["TYPE"]:
+            timelines["IDENTIFICATION"][ip] = event
+        if "TYPE" in event.keys() and "VULNERABILITY" in event["TYPE"]:
+            timelines["VULNERABILITY"][ip] = event
 
     return timelines
-
-
 
 ##########
 #

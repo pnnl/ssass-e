@@ -83,8 +83,8 @@ except ImportError:
 
 import sqlite3
 import json
-from .Databases import dbManager
 from .Databases import dbManagerNew
+from . import statusTracker
 
 from . import decisionSimple
 from . import helper
@@ -96,11 +96,8 @@ from .identifyIP import IpIdentifier
 # Database files
 NEW_E_DB_FILE = "new_e_db.sqlite" # new evidence
 NEW_EVENTS_DB_FILE = "new_events_db.sqlite" # new events
-
-D_DB_FILE = "d_db.sqlite" # devices
-V_DB_FILE = "v_db.sqlite" # vendors
-S_DB_FILE = "s_db.sqlite" # status
-R_DB_FILE = "r_db.sqlite" # requests
+NEW_D_DB_FILE = "new_d_db.sqlite" # devices
+NEW_V_DB_FILE = "new_v_db.sqlite" # vendors
 
 # Ignore IP List
 IGNORE_IPS = []
@@ -127,11 +124,11 @@ class DeviceIdentificationEngine(Actor):
         self.identifyIPQueue = multiprocessing.Queue()
         self.identifyVulnQueue = multiprocessing.Queue()
 
-        self.DBManager = dbManager.DBManager()
         self.DBManagerNew = dbManagerNew.DBManager()
+        self.StatusTracker = statusTracker.StatusTracker()
 
-        self.IpIdentifier = identifyIP.IpIdentifier(self.config, self.DBManager, self.DBManagerNew, None)
-        self.ServiceProcessor = identifyVulnerabilities.ServiceProcessor(self.config, self.DBManager, self.DBManagerNew, None)
+        self.IpIdentifier = identifyIP.IpIdentifier(self.config, self.DBManagerNew, None)
+        self.ServiceProcessor = identifyVulnerabilities.ServiceProcessor(self.config, self.DBManagerNew, None)
         #self.processEvidenceGreenlet = gevent.spawn(self.geventLoop)
         thread.start()
         gevent.spawn(self.setup_subscriptions)
@@ -235,9 +232,9 @@ class DeviceIdentificationEngine(Actor):
     ##########################################################
     def vendorMap(self, vendor):
         #printD("InferenceEngine.vendorMap()")
-        v_names = dbManager.allIdentifiers(V_DB_FILE)
+        v_names = dbManagerNew.allIPs(NEW_V_DB_FILE)
         for realVen in v_names:
-            if helper.singleInList(vendor, dbManager.select(V_DB_FILE, realVen)["VENDOR"]):
+            if helper.singleInList(vendor, dbManagerNew.select_all(NEW_V_DB_FILE, realVen)["VENDOR"]):
                 vendor = realVen
                 break
         return vendor
@@ -247,9 +244,9 @@ class DeviceIdentificationEngine(Actor):
     ##########################################################
     def modelMap(self, model):
         #printD("InferenceEngine.modelMap()")
-        d_names = dbManager.allIdentifiers(D_DB_FILE)
+        d_names = dbManagerNew.allIPs(NEW_D_DB_FILE)
         for realDev in d_names:
-            if helper.singleInList(model, dbManager.select(D_DB_FILE, realDev)["MODEL"]):
+            if helper.singleInList(model, dbManagerNew.select_all(NEW_D_DB_FILE, realDev)["MODEL"]):
                 model = realDev
                 break
         return model
@@ -315,7 +312,7 @@ class DeviceIdentificationEngine(Actor):
 
         prevStatus = {}
         identified = 'n'
-        for ip_port in dbManager.select(S_DB_FILE, "VULN_IDENTIFIED").get("IP_PORT", []):
+        for ip_port in self.StatusTracker.IP_PORT:
             ip, pt = ip_port.split('_')
             if ip == device and port == pt:
                 identified = 'y'
@@ -355,7 +352,7 @@ class DeviceIdentificationEngine(Actor):
 
             if identified == 'y':
                 ip_port = "{}_{}".format(mysteryDevice, port)
-                self.DBManager.insert(S_DB_FILE, "VULN_IDENTIFIED", {"IP_PORT": [ip_port]})
+                if ip_port not in self.StatusTracker.IP_PORT: self.StatusTracker.IP_PORT.append(ip_port)
 
             self.DBManagerNew.insert(NEW_EVENTS_DB_FILE, mysteryDevice, {"PROCESSING": "n"}, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Vulnerability")
             vulnProtocols = self.getVulnerabilityPorts(mysteryDevice)
@@ -377,7 +374,7 @@ class DeviceIdentificationEngine(Actor):
             time.sleep(0.01)
 
             # print out debug info
-            printD("inference.geventLoop() - identified: {0}".format(dbManager.select(S_DB_FILE, "IDENTIFIED").get("IP", [])))
+            printD("inference.geventLoop() - identified: {0}".format(self.StatusTracker.IDENTIFIED))
 
             ########## DEVICE IDENTIFICATION ##########
             self.processIdentification()
@@ -410,13 +407,13 @@ class DeviceIdentificationEngine(Actor):
                     requestTimeStamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
                     requestDict = {}
                     requestDict["MESSAGE"] = ["PING: Device list from checkForExternalIPs: {}".format(devices)]
-                    self.DBManager.insert(R_DB_FILE, requestTimeStamp, requestDict)
+                    #self.DBManager.insert(R_DB_FILE, requestTimeStamp, requestDict)
 
     ##########################################################
     # processIdentification()
     ##########################################################
     def processIdentification(self):
-        printD("inference.geventLoop() - ID_QUEUE: {0}".format(dbManager.select(S_DB_FILE, "ID_QUEUE").get("IP", [])))
+        printD("inference.geventLoop() - ID_QUEUE: {0}".format(self.StatusTracker.ID_QUEUE))
         if not self.newPortEvidenceQueue.empty():
             printD("inference.geventLoop() - VULN_QUEUE: {0}".format(self.newPortEvidenceQueue.peek()))
 
@@ -424,7 +421,7 @@ class DeviceIdentificationEngine(Actor):
         # Go through evidenceIP queue, find IP that has new evidence waiting
         # remove from list
         mysteryDevice = False
-        for mD in dbManager.select(S_DB_FILE, "ID_QUEUE").get("IP", []):
+        for mD in self.StatusTracker.ID_QUEUE:
             mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, mD)
             allEvents = dbManagerNew.select_all(NEW_EVENTS_DB_FILE, mD)
             if self.ipInPolicy(mD) and ("PROCESSING" not in allEvents.keys() or "n" in allEvents["PROCESSING"]):
@@ -438,17 +435,13 @@ class DeviceIdentificationEngine(Actor):
             for mD in devices:
                 mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, mD)
                 allEvents = dbManagerNew.select_all(NEW_EVENTS_DB_FILE, mD)
-                if self.ipInPolicy(mD) and "ACTIVE_SCAN_TIME" in allEvents.keys() and "0" not in allEvents["ACTIVE_SCAN_TIME"] and mysteryDevice not in dbManager.select(S_DB_FILE, "IDENTIFIED").get("IP", []):
+                if self.ipInPolicy(mD) and "ACTIVE_SCAN_TIME" in allEvents.keys() and "0" not in allEvents["ACTIVE_SCAN_TIME"] and mysteryDevice not in self.StatusTracker.IDENTIFIED:
                     mysteryDevice = mD
                     break
 
         # run identification process on the chosen IP (mysteryDevice)
         if mysteryDevice != False:
-            #if mysteryDevice not in dbManager.select(S_DB_FILE, "DECK").get("IP", []):
-            self.DBManager.removeVal(S_DB_FILE, "ID_QUEUE", "IP", mysteryDevice)
-            #else:
-            #    self.DBManager.removeVal(S_DB_FILE, "DECK", "IP", mysteryDevice)
-            #    printD("identifyProcess")
+            if mysteryDevice in self.StatusTracker.ID_QUEUE: self.StatusTracker.ID_QUEUE.remove(mysteryDevice)
             self.identifyProcess(mysteryDevice)
 
     #####
@@ -466,14 +459,15 @@ class DeviceIdentificationEngine(Actor):
                 externalDevices.append(device)
         return externalDevices
 
+    # TODO: handle communication between ssass-e and webpage for user input/requests/actions
     def checkForPingSweepUserInput(self):
-        allRequestTimeStamps = dbManager.allIdentifiers(R_DB_FILE)
-        for requestTimeStamp in allRequestTimeStamps:
-            requestDict = dbManager.select(R_DB_FILE, requestTimeStamp)
-            if "DONE" not in requestDict and "PINGSWEEP" in requestDict:
-                printD("geventLoop() Ping sweep timestamp: {0}, response: {1}".format(requestTimeStamp, requestDict["PINGSWEEP"]))
-                self.DBManager.insert(R_DB_FILE, requestTimeStamp, {"DONE": ["Y"]})
-                return requestDict["PINGSWEEP"]
+        #allRequestTimeStamps = dbManager.allIdentifiers(R_DB_FILE)
+        #for requestTimeStamp in allRequestTimeStamps:
+        #    requestDict = dbManager.select(R_DB_FILE, requestTimeStamp)
+        #    if "DONE" not in requestDict and "PINGSWEEP" in requestDict:
+        #        printD("geventLoop() Ping sweep timestamp: {0}, response: {1}".format(requestTimeStamp, requestDict["PINGSWEEP"]))
+        #        self.DBManager.insert(R_DB_FILE, requestTimeStamp, {"DONE": ["Y"]})
+        #        return requestDict["PINGSWEEP"]
         return None
 
     def ping_sweep_handler(self, ipRangeList):
@@ -525,11 +519,11 @@ class DeviceIdentificationEngine(Actor):
         port = 0
         service = 0
         IP_PORT_SERVICE = None
-        ips = dbManager.select(S_DB_FILE, "VULN_QUEUE").get("IP_PORT_SERVICE", [])
+        ips = self.StatusTracker.IP_PORT_SERVICE
 
         printD( "VULN_QUEUE len: {}, entries: {}".format(len(ips), ips))
 
-        for ip_port_service in dbManager.select(S_DB_FILE, "VULN_QUEUE").get("IP_PORT_SERVICE", []):
+        for ip_port_service in self.StatusTracker.IP_PORT_SERVICE:
             printD("SN: Retrieving from VULN_QUEUE db {}".format(ip_port_service))
 
             mD, port, service = ip_port_service.split('|')
@@ -577,7 +571,7 @@ class DeviceIdentificationEngine(Actor):
             printD("SN: Found ip port to scan: IP: {}, PORT: {}, SERVICE: {}, IP_PORT_SERVICE: {}".format(mysteryDevice, port, service, IP_PORT_SERVICE))
             if IP_PORT_SERVICE is None:
                 IP_PORT_SERVICE = "{}|{}|{}".format(mysteryDevice, port, service)
-            self.DBManager.removeVal(S_DB_FILE, "VULN_QUEUE", "IP_PORT_SERVICE", IP_PORT_SERVICE)
+            if IP_PORT_SERVICE in self.StatusTracker.IP_PORT_SERVICE: self.StatusTracker.IP_PORT_SERVICE.remove(IP_PORT_SERVICE)
             self.identifyVulnerability(mysteryDevice, port, service)
 
 
@@ -660,9 +654,9 @@ class DeviceIdentificationEngine(Actor):
         relays = []
         rtus = []
 
-        d_devices = dbManager.allIdentifiers(D_DB_FILE)
+        d_devices = dbManagerNew.allIPs(NEW_D_DB_FILE)
         for device in d_devices:
-            profile = dbManager.select(D_DB_FILE, device)
+            profile = dbManagerNew.select_all(NEW_D_DB_FILE, device)
             device_type = profile.get("DEVICE_TYPE", None)
             if device_type is not None:
                 if "TCP_SIG" in profile.keys() and "TTL" in profile.keys():
@@ -846,7 +840,7 @@ class DeviceIdentificationEngine(Actor):
                         scansDict = json.loads(fr.read())
                         fr.close()
                         scanDict = helper.getNested(scansDict, rawEvidence["SCAN_NAME"])
-                        if mysteryDevice in dbManager.select(S_DB_FILE, "IDENTIFIED").get("IP", []) and scanDict != False and helper.singleInList("vulnerability", scanDict.get("TYPE", [])):
+                        if mysteryDevice in self.StatusTracker.IDENTIFIED and scanDict != False and helper.singleInList("vulnerability", scanDict.get("TYPE", [])):
                             event["TYPE"] = ["VULNERABILITY"]
                     event["STATUS"] = ["Results Received"]
                 event["INFO"] = [json.dumps(newEvidence)]
@@ -869,26 +863,25 @@ class DeviceIdentificationEngine(Actor):
 
             # check if identified
             if "MODEL" in newEvidence.keys():
-                self.DBManager.insert(S_DB_FILE, "IDENTIFIED", {"IP": [mysteryDevice]})
-                self.DBManager.removeVal(S_DB_FILE, "ID_QUEUE", "IP", mysteryDevice)
+                if mysteryDevice not in self.StatusTracker.IDENTIFIED: self.StatusTracker.IDENTIFIED.append(mysteryDevice)
+                if mysteryDevice not in self.StatusTracker.ID_QUEUE: self.StatusTracker.ID_QUEUE.remove(mysteryDevice)
                 #self.DBManager.removeVal(S_DB_FILE, "DECK", "IP", mysteryDevice)
 
-                deviceProfile = dbManager.select(D_DB_FILE, newEvidence["MODEL"][0])
+                deviceProfile = dbManagerNew.select(NEW_D_DB_FILE, newEvidence["MODEL"][0])
                 if "DEVICE_TYPE" in deviceProfile.keys():
                     newEvidence["DEVICE_TYPE"] = deviceProfile["DEVICE_TYPE"]
                     self.DBManagerNew.insert(NEW_E_DB_FILE, mysteryDevice, newEvidence, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), ((("Active", "Passive")["Active" in fromWho]), "Internal")["Passive" in fromWho or "Active" in fromWho])
 
             # add IP to queue to be processed
-            printD("receive before() - ID_QUEUE: {0}".format(dbManager.select(S_DB_FILE, "ID_QUEUE").get("IP", [])))
-            if mysteryDevice not in dbManager.select(S_DB_FILE, "IDENTIFIED").get("IP", []):
-                self.DBManager.insert(S_DB_FILE, "ID_QUEUE", {"IP": [mysteryDevice]})
-            printD("receive after() - ID_QUEUE: {0}".format(dbManager.select(S_DB_FILE, "ID_QUEUE").get("IP", [])))
+            printD("receive before() - ID_QUEUE: {0}".format(self.StatusTracker.ID_QUEUE))
+            if mysteryDevice not in self.StatusTracker.IDENTIFIED and mysteryDevice not in self.StatusTracker.ID_QUEUE: self.StatusTracker.ID_QUEUE.append(mysteryDevice)
+            printD("receive after() - ID_QUEUE: {0}".format(self.StatusTracker.ID_QUEUE))
 
             scan = {}
             scan["PARAMS"] = {"key": "testing"}
 #            self.publish_request("active.requests.pacific", scan["PARAMS"])
             # preps vuln queue
-            if mysteryDevice in dbManager.select(S_DB_FILE, "IDENTIFIED").get("IP", []):
+            if mysteryDevice in self.StatusTracker.IDENTIFIED:
                 printD("SN: New evidence: {}".format(newEvidence))
                 printD("SN: Device is identified: {}".format(mysteryDevice))
                 if mysteryDevice not in self.ServiceProcessor.processStarted.keys():
@@ -924,17 +917,15 @@ class DeviceIdentificationEngine(Actor):
                     for service, port in protocols.items():
                         ip_port_service = "{}|{}|{}".format(mysteryDevice, port, service)
                         #self.newPortEvidenceQueue.put(mysteryDevice, port, service)
-                        entries = dbManager.select(S_DB_FILE, "VULN_QUEUE").get("IP_PORT_SERVICE", [])
-                        printD("SN: db entries: {}, ip_port_service: {}".format(entries, ip_port_service))
-                        if ip_port_service not in entries:
-                            self.DBManager.insert(S_DB_FILE, "VULN_QUEUE", {"IP_PORT_SERVICE": [ip_port_service]})
+                        printD("SN: db entries: {}, ip_port_service: {}".format(self.StatusTracker.IP_PORT_SERVICE, ip_port_service))
+                        if ip_port_service not in self.StatusTracker.IP_PORT_SERVICE: self.StatusTracker.IP_PORT_SERVICE.append(ip_port_service)
                         printD("SN: ip_port_service: {}".format(ip_port_service))
                         #printD("SN: AFTER putting newPortEvidenceQueue: {}".format(self.newPortEvidenceQueue))
         printD("inference.receive() - exiting")
 
     def getVulnerabilityPorts(self, mysteryDevice):
         vulnProtococols = set()
-        ip_ports = dbManager.select(S_DB_FILE, "VULN_IDENTIFIED").get("IP_PORT", [])
+        ip_ports = self.StatusTracker.IP_PORT
         for ip_port in ip_ports:
             ip, port = ip_port.split('_')
             if ip == mysteryDevice:

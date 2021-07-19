@@ -88,11 +88,10 @@ results_path = "ssasse_platform/InferenceEngine/Results/"
 profiles_path = "ssasse_platform/InerenceEngine/Profiles/"
 
 class BaseMysteryEvidenceProcessor(object):
-    def __init__(self, config, DBManager, DBManagerNew, rmq_connection):
+    def __init__(self, config, DBManagerNew, rmq_connection):
         printD("BaseMysteryEvidenceProcessor.__init__()")
 #        super(BaseMysteryEvidenceProcessor, self).__init__(config, rmq_connection)
 
-        self.DBManager = DBManager
         self.DBManagerNew = DBManagerNew
         self.publishLock = multiprocessing.Lock()
         self.identified = "n"
