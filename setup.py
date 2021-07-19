@@ -55,6 +55,10 @@ profiles_path = "ssasse_platform/InferenceEngine/Profiles/"
 # Create fresh databases
 NEW_E_DB_FILE = "new_e_db.sqlite" # new evidence
 NEW_EVENTS_DB_FILE = "new_events_db.sqlite" # new events
+NEW_D_DB_FILE = "new_d_db.sqlite" # new devices
+NEW_V_DB_FILE = "new_v_db.sqlite" # new vendors
+NEW_VULN_DB_FILE = "new_vuln_db.sqlite" # new vulns
+NEW_R_DB_FILE = "new_r_db.sqlite" # new requests/notifs
 
 D_DB_FILE = "d_db.sqlite" # devices
 V_DB_FILE = "v_db.sqlite" # vendors
@@ -67,6 +71,10 @@ DBManagerNew = dbManagerNew.DBManager()
 
 DBManagerNew.create(NEW_E_DB_FILE)
 DBManagerNew.create(NEW_EVENTS_DB_FILE)
+DBManagerNew.create(NEW_D_DB_FILE)
+DBManagerNew.create(NEW_V_DB_FILE)
+DBManagerNew.create(NEW_VULN_DB_FILE)
+DBManagerNew.create(NEW_R_DB_FILE)
 
 DBManager.create(D_DB_FILE)
 DBManager.create(V_DB_FILE)
@@ -89,6 +97,23 @@ for file in os.listdir(profiles_path+"Vendors/"):
             print("Inserting vendor profile {0}".format(name))
             DBManager.insert(V_DB_FILE, name, newProfile)
 
+
+# Load vendor profiles from .json file, insert into NEW_V_DB
+for file in os.listdir(profiles_path+"Vendors/"):
+    if file.endswith(".json"):
+        name = file.split(".json")[0]
+        fr = open("{0}{1}".format(profiles_path+"Vendors/", file), "r", encoding="utf-8")
+        try:
+            profile = json.loads(fr.read())
+        except:
+            profile = "NA"
+        fr.close()
+        if profile != "NA":
+            newProfile = helper.breakDownDict(profile)
+            print("Inserting vendor profile {0}".format(name))
+            DBManagerNew.insert(NEW_V_DB_FILE, name, newProfile)
+
+
 # Devices
 for file in os.listdir(profiles_path+"Devices/"):
     if file.endswith(".json"):
@@ -102,7 +127,24 @@ for file in os.listdir(profiles_path+"Devices/"):
         if profile != "NA":
             newProfile = helper.breakDownDict(profile, "", {})
             print("Inserting device profile {0}".format(name))
-            DBManager.insert(D_DB_FILE, name, newProfile)
+            DBManager.insert(D_DB_FILE, name, newProfile, "", "CREATION")
+
+
+# Devices
+for file in os.listdir(profiles_path+"Devices/"):
+    if file.endswith(".json"):
+        name = file.split(".json")[0]
+        fr = open("{0}{1}".format(profiles_path+"Devices/", file), "r", encoding="utf-8")
+        try:
+            profile = json.loads(fr.read())
+        except:
+            profile = "NA"
+        fr.close()
+        if profile != "NA":
+            newProfile = helper.breakDownDict(profile, "", {})
+            print("Inserting device profile {0}".format(name))
+            DBManagerNew.insert(NEW_D_DB_FILE, name, newProfile, "", "CREATION")
+
 
 # Status
 DBManager.insert(S_DB_FILE, "ID_QUEUE", {"IP": []})

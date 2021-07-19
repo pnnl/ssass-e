@@ -53,14 +53,19 @@ import datetime
 
 scans_path = "ssasse_platform/InferenceEngine/Scans/"
 
-E_DB_FILE = "e_db.sqlite" # evidence
-D_DB_FILE = "d_db.sqlite" # devices
-V_DB_FILE = "v_db.sqlite" # vendors
-VULN_DB_FILE = "vuln_db.sqlite" # vulnerabilities
-EVENTS_DB_FILE = "events_db.sqlite" # events
-R_DB_FILE = "r_db.sqlite" # requests
+#E_DB_FILE = "e_db.sqlite" # evidence
+#D_DB_FILE = "d_db.sqlite" # devices
+#V_DB_FILE = "v_db.sqlite" # vendors
+#VULN_DB_FILE = "vuln_db.sqlite" # vulnerabilities
+#EVENTS_DB_FILE = "events_db.sqlite" # events
+#R_DB_FILE = "r_db.sqlite" # requests
 
+NEW_E_DB_FILE = "new_e_db.sqlite"
+NEW_EVENTS_DB_FILE = "new_events_db.sqlite"
+
+from ssasse_platform.InferenceEngine.Databases import dbManagerNew
 from ssasse_platform.InferenceEngine.Databases import dbManager
+
 from ssasse_platform.InferenceEngine import helper
 from ssasse_platform.InferenceEngine import similarityScore
 
@@ -230,7 +235,7 @@ def putRequest(requestVal):
                 zonemap[val].append(key)
                 updated = True
 
-        dbManager.DBManager().insert(R_DB_FILE, requestTimeStamp, {"PINGSWEEP": ipList, "RESPONSE": ["sent"]})
+        #dbManager.DBManager().insert(R_DB_FILE, requestTimeStamp, {"PINGSWEEP": ipList, "RESPONSE": ["sent"]})
 
         if updated:
             fw = open("{0}zonemap.json".format(scans_path), "w", encoding="utf-8")
@@ -242,11 +247,11 @@ def putRequest(requestVal):
 ##########
 def getRequests():
     requestsDict = {}
-    allRequestTimeStamps = dbManager.allIdentifiers(R_DB_FILE)
-    for requestTimeStamp in allRequestTimeStamps:
-        request = dbManager.select(R_DB_FILE, requestTimeStamp)
-        if "RESPONSE" not in request:
-            requestsDict[requestTimeStamp] = request
+    #allRequestTimeStamps = dbManagerNew.allIPs(R_DB_FILE)
+    #for requestTimeStamp in allRequestTimeStamps:
+    #    request = dbManager.select(R_DB_FILE, requestTimeStamp)
+    #    if "RESPONSE" not in request:
+    #        requestsDict[requestTimeStamp] = request
     return requestsDict
 
 ##########
@@ -265,7 +270,7 @@ def getSummary():
     summary["TABLE"] = {}
     summary["REQUESTS"] = getRequests()
 
-    allIPs = dbManager.allIdentifiers(E_DB_FILE)
+    allIPs = dbManagerNew.allIPs(NEW_E_DB_FILE)
     for deviceIP in allIPs:
         summary["AGGREGATE"]["TOTAL_DEVICES"] = summary["AGGREGATE"]["TOTAL_DEVICES"] + 1
         summary["TABLE"][deviceIP] = {}
@@ -277,7 +282,7 @@ def getSummary():
         summary["TABLE"][deviceIP]["MED_VULNS"] = 0
         summary["TABLE"][deviceIP]["LOW_VULNS"] = 0
 
-        evidence = dbManager.select(E_DB_FILE, deviceIP)
+        evidence = dbManagerNew.select_all(NEW_E_DB_FILE, deviceIP)
 
         # count identified
         if "MODEL" in evidence.keys():
@@ -311,7 +316,8 @@ def getSummary():
         if "VULNERABILITIES" in evidence.keys():
             for vulnerabilityID in evidence["VULNERABILITIES"]:
                 summary["AGGREGATE"]["TOTAL_VULNERABILITIES"] = summary["AGGREGATE"]["TOTAL_VULNERABILITIES"] + 1
-                vulnerability = dbManager.select(VULN_DB_FILE, vulnerabilityID)
+                #vulnerability = dbManager.select(VULN_DB_FILE, vulnerabilityID)
+                vulnerability = {"SEVERITY": []}
                 if helper.singleInList("high", vulnerability["SEVERITY"]):
                     summary["AGGREGATE"]["HIGH_VULNS"] = summary["AGGREGATE"]["HIGH_VULNS"] + 1
                     summary["TABLE"][deviceIP]["HIGH_VULNS"] = summary["TABLE"][deviceIP]["HIGH_VULNS"] + 1
@@ -331,7 +337,7 @@ def getSummary():
 ##########
 def getDetails(deviceIP):
     details = {}
-    evidence = dbManager.select(E_DB_FILE, deviceIP)
+    evidence = dbManagerNew.select_all(NEW_E_DB_FILE, deviceIP)
     details["DEVICE_PROFILE"] = getDeviceProfile(evidence)
     details["VENDOR_PROFILE"] = getVendorProfile(evidence)
 
@@ -345,7 +351,8 @@ def getDetails(deviceIP):
 
     for vulnerabilityID in details["VULNERABILITIES"]:
         details["TOTAL_VULNERABILITIES"] = details["TOTAL_VULNERABILITIES"] + 1
-        vulnerability = dbManager.select(VULN_DB_FILE, vulnerabilityID)
+        #vulnerability = dbManager.select(VULN_DB_FILE, vulnerabilityID)
+        vulnerability = {"SEVERITY": []}
         if helper.singleInList("high", vulnerability["SEVERITY"]):
             details["HIGH_VULNS"] = details["HIGH_VULNS"] + 1
         if helper.singleInList("medium", vulnerability["SEVERITY"]):
@@ -362,11 +369,11 @@ def getDetails(deviceIP):
 ##########
 def getDeviceProfile(evidence):
     deviceProfile = {}
-    devices = dbManager.allIdentifiers(D_DB_FILE)
+    devices = dbManagerNew.allIPs(NEW_D_DB_FILE)
     if "MODEL" in evidence.keys():
         for model in evidence["MODEL"]:
             if model in devices:
-                deviceProfile = dbManager.select(D_DB_FILE, model)
+                deviceProfile = dbManagerNew.select_all(NEW_D_DB_FILE, model)
                 break
     return deviceProfile
 
@@ -375,11 +382,11 @@ def getDeviceProfile(evidence):
 ##########
 def getVendorProfile(evidence):
     vendorProfile = {}
-    vendors = dbManager.allIdentifiers(V_DB_FILE)
+    vendors = dbManagerNew.allIPs(NEW_V_DB_FILE)
     if "VENDOR" in evidence.keys():
         for vendor in evidence["VENDOR"]:
             if vendor in vendors:
-                vendorProfile = dbManager.select(V_DB_FILE, vendor)
+                vendorProfile = dbManagerNew.select_all(NEW_V_DB_FILE, vendor)
                 break
     return vendorProfile
 
@@ -404,15 +411,15 @@ def getVulnerabilities(evidence, deviceProfile, vendorProfile):
     vulnerabilities = {}
     if "VULNERABILITIES" in evidence.keys():
         for vulnID in evidence["VULNERABILITIES"]:
-            vuln = dbManager.select(VULN_DB_FILE, vulnID)
+            vuln = dbManagerNew.select_all(NEW_VULN_DB_FILE, vulnID)
             vulnerabilities[vulnID] = vuln
     if "VULNERABILITIES" in deviceProfile.keys():
         for vulnID in deviceProfile["VULNERABILITIES"]:
-            vuln = dbManager.select(VULN_DB_FILE, vulnID)
+            vuln = dbManagerNew.select_all(NEW_VULN_DB_FILE, vulnID)
             vulnerabilities[vulnID] = vuln
     if "VULNERABILITIES" in vendorProfile.keys():
         for vulnID in vendorProfile["VULNERABILITIES"]:
-            vuln = dbManager.select(VULN_DB_FILE, vulnID)
+            vuln = dbManagerNew.select_all(NEW_VULN_DB_FILE, vulnID)
             vulnerabilities[vulnID] = vuln
     return vulnerabilities
 
@@ -423,21 +430,21 @@ def getCharts(deviceIP, evidence):
     charts = {}
     charts["DEVICE"] = {}
     charts["VENDOR"] = {}
-    allDevices = dbManager.allIdentifiers(D_DB_FILE)
-    allVendors = dbManager.allIdentifiers(V_DB_FILE)
+    allDevices = dbManagerNew.allIPs(NEW_D_DB_FILE)
+    allVendors = dbManagerNew.allIPs(NEW_V_DB_FILE)
 
     # TO BE IMPLEMENTED - low priority
 
     for device in allDevices:
         charts["DEVICE"][device] = {}
-        charts["DEVICE"][device]["EVIDENCE"] = dbManager.select(E_DB_FILE, deviceIP)
-        charts["DEVICE"][device]["PROFILE"] = dbManager.select(D_DB_FILE, device)
+        charts["DEVICE"][device]["EVIDENCE"] = dbManagerNew.select_all(NEW_E_DB_FILE, deviceIP)
+        charts["DEVICE"][device]["PROFILE"] = dbManagerNew.select_all(NEW_D_DB_FILE, device)
         charts["DEVICE"][device]["SIMILARITY"] = similarityScore.jaccardSimilarity(charts["DEVICE"][device]["EVIDENCE"], charts["DEVICE"][device]["PROFILE"])
 
     for vendor in allVendors:
         charts["VENDOR"][vendor] = {}
-        charts["VENDOR"][vendor]["EVIDENCE"] = dbManager.select(E_DB_FILE, deviceIP)
-        charts["VENDOR"][vendor]["PROFILE"] = dbManager.select(V_DB_FILE, vendor)
+        charts["VENDOR"][vendor]["EVIDENCE"] = dbManagerNew.select_all(NEW_E_DB_FILE, deviceIP)
+        charts["VENDOR"][vendor]["PROFILE"] = dbManagerNew.select_all(NEW_V_DB_FILE, vendor)
         charts["VENDOR"][vendor]["SIMILARITY"] = similarityScore.jaccardSimilarity(charts["VENDOR"][vendor]["EVIDENCE"], charts["VENDOR"][vendor]["PROFILE"])
 
     return charts
@@ -450,9 +457,9 @@ def getTimelines(deviceIP):
     timelines["IDENTIFICATION"] = {}
     timelines["VULNERABILITY"] = {}
 
-    allEvents = dbManager.allIdentifiers(EVENTS_DB_FILE)
+    allEvents = dbManagerNew.allIPs(NEW_EVENTS_DB_FILE)
     for eventID in allEvents:
-        event = dbManager.select(EVENTS_DB_FILE, eventID)
+        event = dbManagerNew.select_all(NEW_EVENTS_DB_FILE, eventID)
         if "TARGET_IPADDR" in event.keys() and deviceIP in event["TARGET_IPADDR"]:
             if "TYPE" in event.keys() and "IDENTIFICATION" in event["TYPE"]:
                 timelines["IDENTIFICATION"][eventID] = event
