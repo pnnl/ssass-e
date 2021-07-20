@@ -441,7 +441,9 @@ class DeviceIdentificationEngine(Actor):
 
         # run identification process on the chosen IP (mysteryDevice)
         if mysteryDevice != False:
-            if mysteryDevice in self.StatusTracker.ID_QUEUE: self.StatusTracker.ID_QUEUE.remove(mysteryDevice)
+            if mysteryDevice in self.StatusTracker.ID_QUEUE:
+                try: self.StatusTracker.ID_QUEUE.remove(mysteryDevice)
+                except: pass
             self.identifyProcess(mysteryDevice)
 
     #####
@@ -571,7 +573,9 @@ class DeviceIdentificationEngine(Actor):
             printD("SN: Found ip port to scan: IP: {}, PORT: {}, SERVICE: {}, IP_PORT_SERVICE: {}".format(mysteryDevice, port, service, IP_PORT_SERVICE))
             if IP_PORT_SERVICE is None:
                 IP_PORT_SERVICE = "{}|{}|{}".format(mysteryDevice, port, service)
-            if IP_PORT_SERVICE in self.StatusTracker.IP_PORT_SERVICE: self.StatusTracker.IP_PORT_SERVICE.remove(IP_PORT_SERVICE)
+            if IP_PORT_SERVICE in self.StatusTracker.IP_PORT_SERVICE:
+                try: self.StatusTracker.IP_PORT_SERVICE.remove(IP_PORT_SERVICE)
+                except: pass
             self.identifyVulnerability(mysteryDevice, port, service)
 
 
@@ -659,25 +663,31 @@ class DeviceIdentificationEngine(Actor):
             profile = dbManagerNew.select_all(NEW_D_DB_FILE, device)
             device_type = profile.get("DEVICE_TYPE", None)
             if device_type is not None:
-                if "TCP_SIG" in profile.keys() and "TTL" in profile.keys():
-                    if helper.singleInList(signature, profile["TCP_SIG"]) and helper.singleInList(ttl, profile["TTL"]):
+                tcpKey = helper.singleInList("TCP_SIG", profile.keys())
+                ttlKey = helper.singleInList("TTL", profile.keys())
+                if tcpKey and ttlKey:
+                    if helper.singleInList(signature, profile[tcpKey]) and helper.singleInList(ttl, profile[ttlKey]):
                         if device_type[0] == "relay":
                             relays.append(profile)
                         elif device_type[0] == "rtu":
                             rtus.append(profile)
 
         if len(relays) == 0 and len(rtus) > 0:
-            if len(rtus) == 1 and "MODEL" in rtus[0].keys() and False:
-                partialEvidence["MODEL"] = rtus[0]["MODEL"][0]
-            if "VENDOR" in rtus[0].keys():
-                partialEvidence["VENDOR"] = rtus[0]["VENDOR"][0]
+            modelKey = helper.singleInList("MODEL", rtus[0].keys())
+            vendorKey = helper.singleInList("VENDOR", rtus[0].keys())
+            if len(rtus) == 1 and modelKey and False:
+                partialEvidence["MODEL"] = rtus[0][modelKey][0]
+            if vendorKey:
+                partialEvidence["VENDOR"] = rtus[0][vendorKey][0]
             partialEvidence["DEVICE_TYPE"] = "rtu"
 
         elif len(rtus) == 0 and len(relays) > 0:
-            if len(relays) == 1 and "MODEL" in relays[0].keys() and False:
-                partialEvidence["MODEL"] = relays[0]["MODEL"][0]
-            if "VENDOR" in relays[0].keys():
-                partialEvidence["VENDOR"] = relays[0]["VENDOR"][0]
+            modelKey = helper.singleInList("MODEL", relays[0].keys())
+            vendorKey = helper.singleInList("VENDOR", relays[0].keys())
+            if len(relays) == 1 and modelKey and False:
+                partialEvidence["MODEL"] = relays[0][modelKey][0]
+            if vendorKey:
+                partialEvidence["VENDOR"] = relays[0][vendorKey][0]
             partialEvidence["DEVICE_TYPE"] = "relay"
 
         printD("inference.processSignature() - partialEvidence: {0}".format(partialEvidence))
@@ -864,10 +874,12 @@ class DeviceIdentificationEngine(Actor):
             # check if identified
             if "MODEL" in newEvidence.keys():
                 if mysteryDevice not in self.StatusTracker.IDENTIFIED: self.StatusTracker.IDENTIFIED.append(mysteryDevice)
-                if mysteryDevice not in self.StatusTracker.ID_QUEUE: self.StatusTracker.ID_QUEUE.remove(mysteryDevice)
+                if mysteryDevice not in self.StatusTracker.ID_QUEUE:
+                    try: self.StatusTracker.ID_QUEUE.remove(mysteryDevice)
+                    except: pass
                 #self.DBManager.removeVal(S_DB_FILE, "DECK", "IP", mysteryDevice)
 
-                deviceProfile = dbManagerNew.select(NEW_D_DB_FILE, newEvidence["MODEL"][0])
+                deviceProfile = dbManagerNew.select_all(NEW_D_DB_FILE, newEvidence["MODEL"][0])
                 if "DEVICE_TYPE" in deviceProfile.keys():
                     newEvidence["DEVICE_TYPE"] = deviceProfile["DEVICE_TYPE"]
                     self.DBManagerNew.insert(NEW_E_DB_FILE, mysteryDevice, newEvidence, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), ((("Active", "Passive")["Active" in fromWho]), "Internal")["Passive" in fromWho or "Active" in fromWho])

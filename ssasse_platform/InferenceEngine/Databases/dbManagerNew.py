@@ -147,10 +147,10 @@ class DBManager():
             allEvidenceDictAfter = allEvidenceDictBefore
 
             for key,value in attributeDict.items():
-                key = helper.sanitizeKey(key)
+                #key = helper.sanitizeKey(key)
 
                 if type(value) == str:
-                    value = helper.sanitizeVal(value)
+                    #value = helper.sanitizeVal(value)
                         
                     # check if individual evidence piece is in all_evidence
                     newEvidence = False
@@ -173,7 +173,7 @@ class DBManager():
 
                 elif type(value) == list:
                     for val in value:
-                        val = helper.sanitizeVal(val)
+                        #val = helper.sanitizeVal(val)
                         
                         # check if individual evidence piece is in all_evidence
                         newEvidence = False

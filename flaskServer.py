@@ -89,7 +89,7 @@ def api_main():
             try:
                 r[requestID] = get(requestID,requestVal)
             except Exception as e:
-                print("e: {0}".format(e))
+                print("api_main() e1: {0}".format(e))
                 r[requestID] = "Unavailable"
 
     elif request.method == "GET" and ("start" in input.keys() or "stop" in input.keys() or "setpolicy" in input.keys() or "request" in input.keys()):
@@ -97,7 +97,8 @@ def api_main():
             print("api_main() PUT - ID: \"{0}\", Val: \"{1}\"".format(requestID, requestVal))
             try:
                 r[requestID] = put(requestID,requestVal)
-            except:
+            except Exception as e:
+                print("api_main() e2: {0}".format(e))
                 r[requestID] = "Unavailable"
 
 
@@ -331,13 +332,17 @@ def getSummary():
 #
 ##########
 def getDetails(deviceIP):
+    print("getting details for {0}".format(deviceIP))
     details = {}
     evidence = dbManagerNew.select_all(NEW_E_DB_FILE, deviceIP)
     details["DEVICE_PROFILE"] = getDeviceProfile(evidence)
     details["VENDOR_PROFILE"] = getVendorProfile(evidence)
 
     details["CHILDREN"] = getChildren(evidence)
+    print("got children")
+
     details["VULNERABILITIES"] = getVulnerabilities(evidence, details["DEVICE_PROFILE"], details["VENDOR_PROFILE"])
+    print("got vulns")
 
     details["TOTAL_VULNERABILITIES"] = 0
     details["HIGH_VULNS"] = 0
@@ -355,9 +360,12 @@ def getDetails(deviceIP):
         if helper.singleInList("low", vulnerability["SEVERITY"]):
             details["LOW_VULNS"] = details["LOW_VULNS"] + 1
 
+    print("got vuln counts")
+
     #details["CHARTS"] = getCharts(deviceIP, evidence)
     details["CHARTS"] = {}
     details["TIMELINES"] = getTimelines(deviceIP)
+    print("got timelines")
     return details
 
 ##########
@@ -450,15 +458,17 @@ def getCharts(deviceIP, evidence):
 ##########
 def getTimelines(deviceIP):
     timelines = {}
-    timelines["IDENTIFICATION"] = {}
-    timelines["VULNERABILITY"] = {}
+    timelines["IDENTIFICATION"] = {deviceIP: []}
+    timelines["VULNERABILITY"] = {deviceIP: []}
 
-    allEvents = dbManagerNew.select_all(NEW_EVENTS_DB_FILE, deviceIP)
+    allEvents = dbManagerNew.select_timeline(NEW_EVENTS_DB_FILE, deviceIP)
+    #print("allevents: {0}".format(allEvents))
     for event in allEvents:
         if "TYPE" in event.keys() and "IDENTIFICATION" in event["TYPE"]:
-            timelines["IDENTIFICATION"][ip] = event
+            timelines["IDENTIFICATION"][event["TIMESTAMP"]] = event
         if "TYPE" in event.keys() and "VULNERABILITY" in event["TYPE"]:
-            timelines["VULNERABILITY"][ip] = event
+            timelines["VULNERABILITY"][event["TIMESTAMP"]] = event
+        #timelines["IDENTIFICATION"][event["TIMESTAMP"]] = event
 
     return timelines
 

@@ -247,7 +247,7 @@ class ServiceProcessor(BaseMysteryEvidenceProcessor):
 
         printD("SN: Prepared evidence for decision tree: {}, self.nmap: {}".format(evidence, self.nmap))
         # Determine scan TYPE
-        decision = self.runDecisionTree(deviceIP, evidence)
+        decision = self.runDecisionTree(deviceIP)
         printD("SN: Prepared service decision tree decision: {}, {}, {}, {}".format(deviceIP, port, decision, type(decision)))
         
         if decision not in ["nmap_service_scan", "PORT_NOT_OPEN"]:

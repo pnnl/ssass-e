@@ -132,21 +132,24 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
         printD("scanCategoryDecision() - mysteryEvidence: {0}, scanCategory: {1}".format(mysteryEvidence, scanCategory))
 
         if categoryName == "config_scan":
-            if "VENDOR" in mysteryEvidence.keys():
-                vendorKey = helper.singleInList(mysteryEvidence["VENDOR"][0], scanCategory.keys())
-                if vendorKey:
-                    vendorCategory = scanCategory[vendorKey]
+            vendorKey = helper.singleInList("VENDOR", mysteryEvidence.keys())
+            if vendorKey:
+                vendorNameKey = helper.singleInList(mysteryEvidence[vendorKey][0], scanCategory.keys())
+                if vendorNameKey:
+                    vendorCategory = scanCategory[vendorNameKey]
                     scanDict = {}
                     for scanName,val in vendorCategory.items():
-                        if "identification" in val["TYPE"]:
+                        identificationKey = helper.singleInList("identification", val["TYPE"])
+                        if identificationKey:
                             scanDict[scanName] = val
 
                     if len(scanDict.keys()) > 1:
-                        if "DEVICE_TYPE" in mysteryEvidence.keys():
-                            deviceType = mysteryEvidence["DEVICE_TYPE"][0]
+                        deviceTypeKey = helper.singleInList("DEVICE_TYPE", mysteryEvidence.keys())
+                        if deviceTypeKey:
+                            deviceType = mysteryEvidence[deviceTypeKey][0]
                             for scanName,val in scanDict.items():
                                 if not self.checkSent(mysteryDevice, scanName):
-                                    if deviceType == val["DEVICE_TYPE"]:
+                                    if deviceType == val[deviceTypeKey]:
                                         return scanName
                         else:
                             decision = "no"
@@ -162,8 +165,9 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
 
         elif categoryName == "scada_scan" or categoryName == "tcp_scan":
             meProtocols = []
-            if "PROTOCOLS" in mysteryEvidence.keys():
-                meProtocols = mysteryEvidence["PROTOCOLS"]
+            protocolsKey = helper.singleInList("PROTOCOLS", mysteryEvidence.keys())
+            if protocolsKey:
+                meProtocols = mysteryEvidence[protocolsKey]
             printD("scanCategoryDecision() - ip: {0}, meProtocols: {1}".format(mysteryDevice, meProtocols))
             for protocol in meProtocols:
                 scanCategoryKey = helper.singleInList(protocol, scanCategory.keys())
@@ -171,7 +175,8 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
                     protocolCategory = scanCategory[scanCategoryKey]
                     scanDict = {}
                     for scanName,val in protocolCategory.items():
-                        if "identification" in val["TYPE"]:
+                        identificationKey = helper.singleInList("identification", val["TYPE"])
+                        if identificationKey:
                             if val["PRIORITY"] not in scanDict:
                                 scanDict[val["PRIORITY"]] = []
                             scanDict[val["PRIORITY"]].append(scanName)
@@ -184,18 +189,21 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
                                 return scanName
 
         elif categoryName == "network_scan":
-            if "VENDOR" in mysteryEvidence.keys():
-                meVendor = mysteryEvidence["VENDOR"][0]
+            vendorKey = helper.singleInList("VENDOR", mysteryEvidence.keys())
+            if vendorKey:
+                meVendor = mysteryEvidence[vendorKey][0]
                 # use protocols found in evidence to prioritize scans
-                if "SERVICE" in mysteryEvidence.keys():
-                    meProtocols = mysteryEvidence["SERVICE"]
+                serviceKey = helper.singleInList("SERVICE", mysteryEvidence.keys())
+                if serviceKey:
+                    meProtocols = mysteryEvidence[serviceKey]
                     for protocol in meProtocols:
                         scanCategoryKey = helper.singleInList(protocol, scanCategory.keys())
                         if scanCategoryKey:
                             protocolCategory = scanCategory[scanCategoryKey]
                             scanDict = {}
                             for scanName,val in protocolCategory.items():
-                                if "identification" in val["TYPE"]:
+                                identificationKey = helper.singleInList("identification", val["TYPE"])
+                                if identificationKey:
                                     if val["PRIORITY"] not in scanDict:
                                         scanDict[val["PRIORITY"]] = []
                                     scanDict[val["PRIORITY"]].append(scanName)
@@ -218,7 +226,8 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
                             protocolCategory = scanCategory[scanCategoryKey]
                             scanDict = {}
                             for scanName,val in protocolCategory.items():
-                                if "identification" in val["TYPE"]:
+                                identificationKey = helper.singleInList("identification", val["TYPE"])
+                                if identificationKey:
                                     if val["PRIORITY"] not in scanDict:
                                         scanDict[val["PRIORITY"]] = []
                                     scanDict[val["PRIORITY"]].append(scanName)
@@ -308,10 +317,11 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
             printD("determineScan() - ip: {0}, decision: {1}".format(mysteryDevice, decision))
 
             # if decision was specific scan
-            if scanOrCategory != "NA" and "PARAMS" in scanOrCategory.keys():
+            paramsKey = helper.singleInList("PARAMS", scanOrCategory.keys())
+            if scanOrCategory != "NA" and paramsKey:
                 scan = scanOrCategory
                 printD("SN: getScan: {}".format(scan))
-                scan["PARAMS"]["SCAN_NAME"] = decision
+                scan[paramsKey]["SCAN_NAME"] = decision
 
             # category. get all scans under that category 
             elif scanOrCategory != "NA":
@@ -360,31 +370,36 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
         mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, mysteryDevice)
 
         if categoryName == "config_scan":
-            if "VENDOR" in mysteryEvidence.keys():
-                meVendor = mysteryEvidence["VENDOR"][0]
+            vendorKey = helper.singleInList("VENDOR", mysteryEvidence.keys())
+            if vendorKey:
+                meVendor = mysteryEvidence[vendorKey][0]
                 scanCategoryKey = helper.singleInList(meVendor, scanCategory.keys())
                 vendorCategory = scanCategory[scanCategoryKey]
                 for scanName,val in vendorCategory.items():
-                    if "identification" in val["TYPE"]:
+                    identificationKey = helper.singleInList("identification", val["TYPE"])
+                    if identificationKey:
                         scansList.append(scanName)
 
         elif categoryName == "tcp_scan" or categoryName == "scada_scan":
             for protocol in protocolList:
-                if "PROTOCOLS" in mysteryEvidence.keys():
-                    meProtocol = helper.singleInList(protocol, mysteryEvidence["PROTOCOLS"])
+                protocolsKey = helper.singleInList("PROTOCOLS", mysteryEvidence.keys())
+                if protocolsKey:
+                    meProtocol = helper.singleInList(protocol, mysteryEvidence[protocolsKey])
                     if meProtocol:
                         scanCategoryKey = helper.singleInList(meProtocol, scanCategory.keys())
                         if scanCategoryKey:
                             protocolCategory = scanCategory[scanCategoryKey]
                             for scanName,val in protocolCategory.items():
-                                if "identification" in val["TYPE"]:
+                                identificationKey = helper.singleInList("identification", val["TYPE"])
+                                if identificationKey:
                                     scansList.append(scanName)
                 else:
                     pass
 
         elif categoryName == "network_scan":
-            if "VENDOR" in mysteryEvidence.keys():
-                meVendor = mysteryEvidence["VENDOR"][0]
+            vendorKey = helper.singleInList("VENDOR", mysteryEvidence.keys())
+            if vendorKey:
+                meVendor = mysteryEvidence[vendorKey][0]
 
                 networkProbeKey = helper.singleInList(meVendor, network_probes.keys())
                 # get device type
@@ -396,7 +411,7 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
                         if scanCategoryKey:
                             protocolCategory = scanCategory[scanCategoryKey]
                             for scanName,val in protocolCategory.items():
-                                if "identification" in val["TYPE"]:
+                                if helper.singleInList("identification", val["TYPE"]):
                                     scansList.append(scanName)
 
         scansNotSent = None
@@ -419,29 +434,37 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
         keysList = []
 
         mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, mysteryDevice)
-        
+        target_macaddrKey = helper.singleInList("TARGET_MACADDR", mysteryEvidence.keys())
+        oui_LookupKey = helper.singleInList("OUI_LOOKUP", mysteryEvidence.keys())
+        protocolsKey = helper.singleInList("PROTOCOLS", mysteryEvidence.keys())
+        vendorKey = helper.singleInList("VENDOR", mysteryEvidence.keys())
+        modelKey = helper.singleInList("MODEL", mysteryEvidence.keys())
+        firmware_IDKey = helper.singleInList("FIRMWARE_ID", mysteryEvidence.keys())
+        servicesKey = helper.singleInList("SERVICES", mysteryEvidence.keys())
+        deviceTypeKey = helper.singleInList("DEVICE_TYPE", mysteryEvidence.keys())
+
         if treeType == "global":
             categoriesList = ["tcp_scan"]
 
-            if "TARGET_MACADDR" in mysteryEvidence.keys():
+            if target_macaddrKey:
                 preparedEvidence["MAC"] = "yes"
-            if "OUI_LOOKUP" in mysteryEvidence.keys():
+            if oui_LookupKey:
                 preparedEvidence["OUILOOKUP"] = "yes"
-            if "PROTOCOLS" in mysteryEvidence.keys():
-                preparedEvidence["Protocol"] = mysteryEvidence["PROTOCOLS"][0].lower()
+            if protocolsKey:
+                preparedEvidence["Protocol"] = mysteryEvidence[protocolsKey][0].lower()
 
-            if "VENDOR" in mysteryEvidence.keys():
-                if helper.singleInList(mysteryEvidence["VENDOR"][0], known_scada_vendors):
+            if vendorKey:
+                if helper.singleInList(mysteryEvidence[vendorKey][0], known_scada_vendors):
                     preparedEvidence["Vendor"] = "yes"
                 else:
                     preparedEvidence["Vendor"] = "no"
 
-            if "MODEL" in mysteryEvidence.keys():
+            if modelKey:
                 preparedEvidence["Model"] = "yes"
             elif modelDecision == "Unknown":
                 preparedEvidence["Model"] = "no"
 
-            if "FIRMWARE_ID" in mysteryEvidence.keys():
+            if firmware_IDKey:
                 preparedEvidence["Firmware"] = "yes"
             elif firmwareDecision == "Unknown":
                 preparedEvidence["Firmware"] = "no"
@@ -454,13 +477,13 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
             # else, it is empty (when some have been triggered but not all, and it is allowed via policy)
             categoriesList = ["config_scan","scada_scan","tcp_scan","network_scan"]
 
-            if "PROTOCOLS" in mysteryEvidence.keys():
+            if protocolsKey:
                 preparedEvidence["Protocol"] = "available"
 
-            if "SERVICES" in mysteryEvidence.keys():
+            if servicesKey:
                 preparedEvidence["Services"] = "available"
 
-            if "MODEL" in mysteryEvidence.keys():
+            if modelKey:
                 preparedEvidence["Model"] = "yes"
             elif modelDecision == "Unknown":
                 preparedEvidence["Model"] = "no"
@@ -468,10 +491,10 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
         elif treeType == "model":
             categoriesList = ["config_scan","network_scan"]
 
-            if "MODEL" in mysteryEvidence.keys():
-                preparedEvidence["Model"] = mysteryEvidence["MODEL"][0].lower()
+            if modelKey:
+                preparedEvidence["Model"] = mysteryEvidence[modelKey][0].lower()
 
-            if "FIRMWARE_ID" in mysteryEvidence.keys():
+            if firmware_IDKey:
                 preparedEvidence["Firmware"] = "yes"
 
         for categoryName in categoriesList:
@@ -480,7 +503,7 @@ class IpIdentifier(BaseMysteryEvidenceProcessor):
                 preparedEvidence[categoryName] = "no"
             elif helper.singleInList(categoryName, mysteryEvidence.keys()) and mysteryEvidence[helper.singleInList(categoryName, mysteryEvidence.keys())][0] == "no":
                 if categoryName == "config_scan":
-                    if "DEVICE_TYPE" in mysteryEvidence.keys():
+                    if deviceTypeKey:
                         preparedEvidence[categoryName] = "empty"
                     else:
                         preparedEvidence[categoryName] = "no"

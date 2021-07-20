@@ -141,7 +141,8 @@ class BaseMysteryEvidenceProcessor(object):
         #    gevent.sleep()
 
         # no scan outbound
-        if ("ACTIVE_SCAN_TIME" not in allEvents.keys()) or ("ACTIVE_SCAN_TIME" in allEvents.keys() and "0" in allEvents["ACTIVE_SCAN_TIME"]):
+        activeScanKey = helper.singleInList("ACTIVE_SCAN_TIME", allEvents.keys())
+        if (not activeScanKey) or (activeScanKey and "0" in allEvents[activeScanKey]):
             printD("ACTIVE_SCAN_TIME")
             scan = self.determineScan(mysteryDevice, **kwargs)
             timeElapsed = 0
@@ -149,8 +150,8 @@ class BaseMysteryEvidenceProcessor(object):
         # scan outbound, check timeout
         else:
             activeScanTime = 0
-            if "ACTIVE_SCAN_TIME" in allEvents.keys():
-                activeScanTime = float(allEvents["ACTIVE_SCAN_TIME"][0])
+            if activeScanKey:
+                activeScanTime = float(allEvents[activeScanKey][0])
             timeElapsed = time.time() - activeScanTime
 
             if timeElapsed > 600:
@@ -242,14 +243,15 @@ class BaseMysteryEvidenceProcessor(object):
 
         for key in keyList:
             # check for "all"
-            if key in policy and (policy[key]["scans"] == "all" or "all" in policy[key]["scans"]):
+            policyKey = helper.singleInList(key, policy)
+            if policyKey and (policy[policyKey]["scans"] == "all" or "all" in policy[policyKey]["scans"]):
                 allowed = True
             # check for direct match
-            elif key in policy and (helper.compareSingle(policy[key]["scans"], scanOrCategoryName) or helper.singleInList(scanOrCategoryName, policy[key]["scans"])):
+            elif policyKey and (helper.compareSingle(policy[policyKey]["scans"], scanOrCategoryName) or helper.singleInList(scanOrCategoryName, policy[policyKey]["scans"])):
                 allowed = True
             # check if policy has a category that covers the given scanOrCategoryName in scans.json
-            elif key in policy:
-                for policyName in policy[key]["scans"]:
+            elif policyKey:
+                for policyName in policy[policyKey]["scans"]:
                     parent = helper.getNested(scans, policyName)
                     if parent != False:
                         child = helper.getNested(parent, scanOrCategoryName)
@@ -285,8 +287,9 @@ class BaseMysteryEvidenceProcessor(object):
         allEvents = dbManagerNew.select_all(NEW_EVENTS_DB_FILE, mysteryDevice)
 
         activeScansSent = []
-        if "ACTIVE_SCANS_SENT" in allEvents.keys():
-            activeScansSent = allEvents["ACTIVE_SCANS_SENT"]
+        activeScansSentKey = helper.singleInList("ACTIVE_SCANS_SENT", allEvents.keys())
+        if activeScansSentKey:
+            activeScansSent = allEvents[activeScansSentKey]
 
         if helper.singleInList(scanName, activeScansSent) != False:
             scanSent = True
