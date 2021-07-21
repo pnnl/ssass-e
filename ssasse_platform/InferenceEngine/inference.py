@@ -309,6 +309,7 @@ class DeviceIdentificationEngine(Actor):
     ##########################################################
     def identifyVulnerability(self, device, port, service):
         self.DBManagerNew.insert(NEW_EVENTS_DB_FILE, device, {"PROCESSING": "y"}, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Vulnerability")
+        printD("SN: identifying new vuln: {}, {}, {}".format(device, port, service))
 
         prevStatus = {}
         identified = 'n'
@@ -321,8 +322,10 @@ class DeviceIdentificationEngine(Actor):
         prevStatus['port'] = port
         prevStatus['identified'] = identified
         prevStatus['nmap'] = 'done'
+        printD("SN: about to start vuln multiprocess")
         p = multiprocessing.Process(target=self.spawnProcessService, args=(device,port,service,prevStatus))
         p.start()
+        printD("SN: just started vuln multiprocess")
 
     def spawnProcessService(self, device, port, service, prevStatus):
         currentStatus = None
@@ -337,26 +340,28 @@ class DeviceIdentificationEngine(Actor):
     def getFromVulnQueue(self):
         if not self.identifyVulnQueue.empty():
             resultsDict = self.identifyVulnQueue.get()
+            printD("SN: getFromVulnQueue() - resultsDict: {}".format(resultsDict))
             mysteryDevice = resultsDict["device"]
             for internal in resultsDict["internal"]:
                 self.receiveEvidence(internal, "Internal")
             for external in resultsDict["external"]:
-                printD("publishing ip: {0}, external: {1}".format(mysteryDevice, external))
+                printD("SN: publishing ip: {0}, external: {1}".format(mysteryDevice, external))
                 #self.publishActor.publish_request(external["ACTIVE_REQUEST_STRING"], external["SCAN"])
                 self.publish_messages.append((external["ACTIVE_REQUEST_STRING"], external["SCAN"]))
 
             port = resultsDict["port"]
             identified = 'n'
-            if "identified" in resultsDict.keys():
-                identified = resultsDict["identified"]
+            identifiedKey = helper.singleInList("identified", resultsDict.keys())
+            if identifiedKey:
+                identified = resultsDict[identifiedKey]
 
-            if identified == 'y':
+            if identified.lower() != 'n':
                 ip_port = "{}_{}".format(mysteryDevice, port)
                 if ip_port not in self.StatusTracker.IP_PORT: self.StatusTracker.IP_PORT.append(ip_port)
 
             self.DBManagerNew.insert(NEW_EVENTS_DB_FILE, mysteryDevice, {"PROCESSING": "n"}, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Vulnerability")
             vulnProtocols = self.getVulnerabilityPorts(mysteryDevice)
-            printD("SN: ***IdentifiedVulnerabilities device: {}, ports: {}".format(mysteryDevice, vulnProtocols))
+            printD("SN: getFromVulnQueue() - IdentifiedVulnerabilities device: {}, ports: {}".format(mysteryDevice, vulnProtocols))
             #printD("Identified Vulnerabilities: {}".format(self.identifiedVulnerabilities))
 
     ##########################################################
@@ -374,7 +379,13 @@ class DeviceIdentificationEngine(Actor):
             time.sleep(0.01)
 
             # print out debug info
-            printD("inference.geventLoop() - identified: {0}".format(self.StatusTracker.IDENTIFIED))
+            #printD("inference.geventLoop() - StatusTracker non-empties:")
+            #if len(self.StatusTracker.IDENTIFIED) > 0: printD("inference.geventLoop() - StatusTracker.identified: {0}".format(self.StatusTracker.IDENTIFIED))
+            #if len(self.StatusTracker.ID_QUEUE) > 0: printD("inference.geventLoop() - StatusTracker.id_queue: {0}".format(self.StatusTracker.ID_QUEUE))
+            if len(self.StatusTracker.COMPLETED) > 0: printD("inference.geventLoop() - StatusTracker.completed: {0}".format(self.StatusTracker.COMPLETED))
+            if len(self.StatusTracker.VULN_QUEUE) > 0: printD("inference.geventLoop() - StatusTracker.vuln_queue: {0}".format(self.StatusTracker.VULN_QUEUE))
+            if len(self.StatusTracker.IP_PORT) > 0: printD("inference.geventLoop() - StatusTracker.ip_port: {0}".format(self.StatusTracker.IP_PORT))
+            if len(self.StatusTracker.IP_PORT_SERVICE) > 0: printD("inference.geventLoop() - StatusTracker.ip_port_service: {0}".format(self.StatusTracker.IP_PORT_SERVICE))
 
             ########## DEVICE IDENTIFICATION ##########
             self.processIdentification()
@@ -389,12 +400,12 @@ class DeviceIdentificationEngine(Actor):
             self.getFromVulnQueue()
             
             userInput = self.checkForPingSweepUserInput()
-            if userInput:
+            if userInput and False:
                 printD("PING: Sending ping sweep: {}".format(userInput))
                 self.ping_sweep_handler(userInput)
 
             currentTime = time.time()
-            if currentTime - peekScanTime >= 30:
+            if currentTime - peekScanTime >= 30 and False:
                 printD("PING: Checking for ExternalIPs")
                 devices = self.checkForExternalIPs()
                 printD("PING: Device list from checkForExternalIPs: {}".format(devices))
@@ -424,7 +435,8 @@ class DeviceIdentificationEngine(Actor):
         for mD in self.StatusTracker.ID_QUEUE:
             mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, mD)
             allEvents = dbManagerNew.select_all(NEW_EVENTS_DB_FILE, mD)
-            if self.ipInPolicy(mD) and ("PROCESSING" not in allEvents.keys() or "n" in allEvents["PROCESSING"]):
+            processingKey = helper.singleInList("PROCESSING", allEvents.keys())
+            if self.ipInPolicy(mD) and (not processingKey or "n" in allEvents[processingKey]):
                 mysteryDevice = mD
                 break
 
@@ -435,7 +447,8 @@ class DeviceIdentificationEngine(Actor):
             for mD in devices:
                 mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, mD)
                 allEvents = dbManagerNew.select_all(NEW_EVENTS_DB_FILE, mD)
-                if self.ipInPolicy(mD) and "ACTIVE_SCAN_TIME" in allEvents.keys() and "0" not in allEvents["ACTIVE_SCAN_TIME"] and mysteryDevice not in self.StatusTracker.IDENTIFIED:
+                activeScanTimeKey = helper.singleInList("ACTIVE_SCAN_TIME", allEvents.keys())
+                if self.ipInPolicy(mD) and activeScanTimeKey and "0" not in allEvents[activeScanTimeKey] and mysteryDevice not in self.StatusTracker.IDENTIFIED:
                     mysteryDevice = mD
                     break
 
@@ -531,7 +544,8 @@ class DeviceIdentificationEngine(Actor):
             mD, port, service = ip_port_service.split('|')
             mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, mD)
             allEvents = dbManagerNew.select_all(NEW_EVENTS_DB_FILE, mD)
-            if "PROCESSING" not in allEvents.keys() or "n" in allEvents["PROCESSING"]:
+            processingKey = helper.singleInList("PROCESSING", allEvents.keys())
+            if not processingKey or helper.singleInList("n", allEvents[processingKey]):
                 mysteryDevice = mD
                 IP_PORT_SERVICE = ip_port_service
                 break
@@ -544,7 +558,8 @@ class DeviceIdentificationEngine(Actor):
 
                 mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, mD)
                 allEvents = dbManagerNew.select_all(NEW_EVENTS_DB_FILE, mD)
-                if "ACTIVE_SCAN_TIME" in allEvents.keys() and "0" not in allEvents["ACTIVE_SCAN_TIME"] and "nmap_service_scan" in mysteryEvidence.get("SCAN_NAME", []):
+                activeScanTimeKey = helper.singleInList("ACTIVE_SCAN_TIME", allEvents.keys())
+                if activeScanTimeKey and "0" not in allEvents[activeScanTimeKey] and "nmap_service_scan" in mysteryEvidence.get("SCAN_NAME", []):
 
                     #mysteryDevice = mD
                     protocols = self.getProtocols(mD)
@@ -554,7 +569,7 @@ class DeviceIdentificationEngine(Actor):
                         vulnProtococols = self.getVulnerabilityPorts(mD)
                         keys_to_delete = []
                         for k, p in protocols.items():
-                            if p in vulnProtococols:
+                            if helper.singleInList(p, vulnProtococols):
                                 keys_to_delete.append(k)
                         for k in keys_to_delete:
                             del protocols[k] 
@@ -585,28 +600,30 @@ class DeviceIdentificationEngine(Actor):
     def getProtocols(self, mysteryDevice):
         mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, mysteryDevice)
         #printD("getPorts: {}".format(mysteryEvidence))
-        vendor = mysteryEvidence.get('VENDOR', None)
+        vendorKey = helper.singleInList("VENDOR", mysteryEvidence.keys())
         #if vendor is None or vendor[0].upper() not in ['SEL', 'GE']:
         #    printD("getPorts for {} returning since vendor is not SEL:{}".format(mysteryDevice, vendor))
         #    return {}
-        model = mysteryEvidence.get('MODEL', None)
+        modelKey = helper.singleInList("MODEL", mysteryEvidence.keys())
         protocols = {}
         # Check for ports info in the evidence
-        if "PROTOCOLS" in mysteryEvidence:
-            for scada_protocol in mysteryEvidence["PROTOCOLS"]:
-                if "{0}_PORT".format(scada_protocol) in mysteryEvidence:
-                    protocols[scada_protocol] = mysteryEvidence["{0}_PORT".format(scada_protocol)]
+        protocolsKey = helper.singleInList("PROTOCOLS", mysteryEvidence.keys())
+        if protocolsKey:
+            for scada_protocol in mysteryEvidence[protocolsKey]:
+                portKey = helper.singleInList("{0}_PORT".format(scada_protocol), mysteryEvidence.keys())
+                if portKey:
+                    protocols[scada_protocol] = mysteryEvidence[portKey]
         
-        if vendor is not None:
-            v = self.vendorMap(vendor[0]).upper()
-            printD("SN: VENDORMAP: INPUT: {}, MAPPED: {}".format(vendor[0], v))
+        if vendorKey:
+            v = self.vendorMap(mysteryEvidence[vendorKey][0]).upper()
+            printD("SN: VENDORMAP: INPUT: {}, MAPPED: {}".format(mysteryEvidence[vendorKey][0], v))
             # Read from vendor profile
             vendorPath = "{0}/{1}.json".format(vendor_profiles_path, v)
             protocols = self.getProtocolsFromProfile(vendorPath)
 
-        if model is not None:
-            m = self.modelMap(model[0]).upper()
-            printD("SN: MODELMAP: INPUT: {}, MAPPED: {}".format(model[0], m))
+        if modelKey:
+            m = self.modelMap(mysteryEvidence[modelKey][0]).upper()
+            printD("SN: MODELMAP: INPUT: {}, MAPPED: {}".format(mysteryEvidence[modelKey][0], m))
             # Read from device profile
             if m.upper() == "CONTROLWAVEREMOTEIO":
                 m = "ControlWaveRemoteIO"
@@ -639,13 +656,13 @@ class DeviceIdentificationEngine(Actor):
             try:
                 service_key = service + "_TCP"
                 protocols[service_key] = prts["TCP"][0]
-            except (KeyError, IndexError):
-                pass
+            except Exception as e:
+                printD("getProtocolsFromProfile() - ERROR: {0}".format(e))
             try:
                 service_key = service + "_UDP"
                 protocols[service_key] = prts["UDP"][0]
-            except (KeyError, IndexError):
-                pass
+            except Exception as e:
+                printD("getProtocolsFromProfile() - ERROR: {0}".format(e))
         printD("getFromProfile: {}".format(protocols))
         return protocols
 
@@ -763,7 +780,7 @@ class DeviceIdentificationEngine(Actor):
                 continue
 
             # ignore
-            if rawKey in ["DEST_PORT", "SOURCE_PORT", "CTR"] or rawKey.startswith("STATUS") or len(rawVal) < 1 or helper.compareSingle(rawVal, "none"):
+            if helper.singleInList(rawKey, ["DEST_PORT", "SOURCE_PORT", "CTR"]) or rawKey.upper().startswith("STATUS") or len(rawVal) < 1 or helper.compareSingle(rawVal, "none"):
                 continue
 
             # conversions
@@ -778,7 +795,7 @@ class DeviceIdentificationEngine(Actor):
 
             # model mapping
             modelKeys = ["MODEL", "PART_NO", "DEVICE_NAME"]
-            if rawKey in modelKeys:
+            if helper.singleInList(rawKey, modelKeys):
                 oldVal = rawVal
                 #if "MODEL" not in newEvidence.keys():
                 #    newEvidence["MODEL"] = []
@@ -872,14 +889,14 @@ class DeviceIdentificationEngine(Actor):
             #         self.DBManager.removeVal(E_DB_FILE, mysteryDevice, "VENDOR", "NA")
 
             # check if identified
-            if "MODEL" in newEvidence.keys():
+            modelKey = helper.singleInList("MODEL", newEvidence.keys())
+            if modelKey:
                 if mysteryDevice not in self.StatusTracker.IDENTIFIED: self.StatusTracker.IDENTIFIED.append(mysteryDevice)
-                if mysteryDevice not in self.StatusTracker.ID_QUEUE:
+                if mysteryDevice in self.StatusTracker.ID_QUEUE:
                     try: self.StatusTracker.ID_QUEUE.remove(mysteryDevice)
                     except: pass
-                #self.DBManager.removeVal(S_DB_FILE, "DECK", "IP", mysteryDevice)
 
-                deviceProfile = dbManagerNew.select_all(NEW_D_DB_FILE, newEvidence["MODEL"][0])
+                deviceProfile = dbManagerNew.select_all(NEW_D_DB_FILE, newEvidence[modelKey][0])
                 if "DEVICE_TYPE" in deviceProfile.keys():
                     newEvidence["DEVICE_TYPE"] = deviceProfile["DEVICE_TYPE"]
                     self.DBManagerNew.insert(NEW_E_DB_FILE, mysteryDevice, newEvidence, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), ((("Active", "Passive")["Active" in fromWho]), "Internal")["Passive" in fromWho or "Active" in fromWho])
@@ -893,6 +910,7 @@ class DeviceIdentificationEngine(Actor):
             scan["PARAMS"] = {"key": "testing"}
 #            self.publish_request("active.requests.pacific", scan["PARAMS"])
             # preps vuln queue
+        if True:
             if mysteryDevice in self.StatusTracker.IDENTIFIED:
                 printD("SN: New evidence: {}".format(newEvidence))
                 printD("SN: Device is identified: {}".format(mysteryDevice))
@@ -908,7 +926,7 @@ class DeviceIdentificationEngine(Actor):
 
                 # check if certain scan "nmap_service_scan" came back
                 scanName = "nmap_service_scan"
-                if scanName in dbManagerNew.select_all(NEW_E_DB_FILE, mysteryDevice).get("SCAN_NAME", []):
+                if helper.singleInList(scanName, dbManagerNew.select_all(NEW_E_DB_FILE, mysteryDevice).get("SCAN_NAME", [])):
                     printD("SN: nmap_service_scan received. mysteryDevice: {}, new evidence: {}".format(mysteryDevice, newEvidence))
 
                     # Check if port done with vulnerabilities check
@@ -916,16 +934,16 @@ class DeviceIdentificationEngine(Actor):
 #                        printD("SN: IdentifiedVulnerabilities ports: {}".format(self.identifiedVulnerabilities))
                         protocols = self.ServiceProcessor.serviceInfo[mysteryDevice]
                         vulnProtocols = self.getVulnerabilityPorts(mysteryDevice)
-                        printD("SN: IdentifiedVulnerabilities device: {}, ports: {}".format(mysteryDevice, vulnProtocols))
+                        printD("SN: IdentifiedVulnerabilities device: {}, ports: {}, protocols: {}".format(mysteryDevice, vulnProtocols, protocols))
                         keys_to_delete = []
                         for k, p in protocols.items():
-                            if p in vulnProtocols:
+                            if helper.singleInList(p, vulnProtocols):
                                 printD("SN: Port {} on Device: {} is vulnerability scanned.".format(p, mysteryDevice))
                                 keys_to_delete.append(k)
                         for k in keys_to_delete:
                             del protocols[k] 
-                    except KeyError:
-                        pass
+                    except Exception as e:
+                        printD("SN: Error: {0}".format(e))
                     for service, port in protocols.items():
                         ip_port_service = "{}|{}|{}".format(mysteryDevice, port, service)
                         #self.newPortEvidenceQueue.put(mysteryDevice, port, service)

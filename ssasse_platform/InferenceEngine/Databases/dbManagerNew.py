@@ -112,12 +112,13 @@ class DBManager():
     #
     #####
     def insertVulnerabilityTableEntry(self, sqlite_file, vuln_sqlite_file, identifier, vulnDict):
+        printD("insertVulnerabilityTableEntry() - {0}, {1}".format(identifier, vulnDict))
         self.vulnLock.acquire()
         try:
             allVulnIDs = allIPs(vuln_sqlite_file)
             vulnID = "V_{0}".format(len(allVulnIDs)+1)
-            self.insert(vuln_sqlite_file, vulnID, vulnDict, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "New Vulnerability")
-            self.insert(sqlite_file, identifier, {"VULNERABILITIES": vulnID}, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Vulnerability Pair")
+            self.insert(vuln_sqlite_file, vulnID, vulnDict, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Vulnerability")
+            self.insert(sqlite_file, identifier, {"VULNERABILITIES": vulnID}, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Vulnerability")
         except Exception as e:
             printD("dbManagerNew.insertVulnerabilityTableEntry() - ERROR: {0}".format(e))
         finally:

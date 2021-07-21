@@ -247,18 +247,19 @@ class ServiceProcessor(BaseMysteryEvidenceProcessor):
 
         printD("SN: Prepared evidence for decision tree: {}, self.nmap: {}".format(evidence, self.nmap))
         # Determine scan TYPE
-        decision = self.runDecisionTree(deviceIP)
+        decision = self.runDecisionTree(deviceIP, evidence)
         printD("SN: Prepared service decision tree decision: {}, {}, {}, {}".format(deviceIP, port, decision, type(decision)))
         
-        if decision not in ["nmap_service_scan", "PORT_NOT_OPEN"]:
+        if not helper.singleInList(decision, ["nmap_service_scan", "PORT_NOT_OPEN"]):
             vulnDict = vulnerabilityIDMapping["PORT_OPEN"]
             vulnDict["DESCRIPTION"] = vulnDict["DESCRIPTION"].format(self.service, port)
+            print("INSERTING VULN {0} {1}".format(deviceIP, vulnDict))
             self.DBManagerNew.insertVulnerabilityTableEntry(NEW_E_DB_FILE, NEW_VULN_DB_FILE, deviceIP, vulnDict)
 
         # valid scan actions, 
-        if decision in ["nmap_service_scan", "FTP_default_cred_Check", "TELNET_default_cred_Check", "HTTP_default_credential_Check", "dnp3_request_link_status"]:
+        if helper.singleInList(decision, ["nmap_service_scan", "FTP_default_cred_Check", "TELNET_default_cred_Check", "HTTP_default_credential_Check", "dnp3_request_link_status"]):
             allowed = self.checkPolicy(deviceIP, decision)
-            if allowed and "VENDOR" in mysteryEvidence:
+            if allowed and helper.singleInList("VENDOR", mysteryEvidence):
                 scan = self.getScan(decision, deviceIP, **kwargs)
                 scan["PARAMS"]["SCAN_NAME"] = decision 
 #                printD("SN: getScan: {}".format(scan))
@@ -277,14 +278,16 @@ class ServiceProcessor(BaseMysteryEvidenceProcessor):
 
                 if sent:
                     scan = "NA"
-        elif decision in ["PORT_NOT_OPEN"]:
+
+        elif helper.singleInList(decision, ["PORT_NOT_OPEN"]):
             self.identified = "y"
             
             vulnDict = vulnerabilityIDMapping[decision]
             vulnDict["DESCRIPTION"] = vulnDict["DESCRIPTION"].format(self.service, port)
+            printD("INSERTING VULN {0} {1}".format(deviceIP, vulnDict))
             self.DBManagerNew.insertVulnerabilityTableEntry(NEW_E_DB_FILE, NEW_VULN_DB_FILE, deviceIP, vulnDict)
 
-        elif decision in vulnerability_decisions:
+        elif helper.singleInList(decision, vulnerability_decisions):
             if evidence["SERVICE_RUNNING"] == "dnp":
                 if decision == "DEFAULT_ACCESS":
                     decision = "DNP3_ALL_MASTER_ACCESS"
@@ -299,6 +302,7 @@ class ServiceProcessor(BaseMysteryEvidenceProcessor):
             
             vulnDict = vulnerabilityIDMapping[decision]
             vulnDict["DESCRIPTION"] = vulnDict["DESCRIPTION"].format(service, port)
+            printD("INSERTING VULN {0} {1}".format(deviceIP, vulnDict))
             self.DBManagerNew.insertVulnerabilityTableEntry(NEW_E_DB_FILE, NEW_VULN_DB_FILE, deviceIP, vulnDict)
 
         #Error
@@ -401,12 +405,12 @@ class ServiceProcessor(BaseMysteryEvidenceProcessor):
     # Calls decision tree to receive an action name based on 
     # evidence/profile
     ##########################################################
-    def runDecisionTree(self, deviceIP):
+    def runDecisionTree(self, deviceIP, evidence):
         training_table_path = ''
         profiles = {}
-        mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, deviceIP)
+        #mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, deviceIP)
         decisionTree = ServicesDecisionTree(profiles, training_table_path)
-        decision = decisionTree.predict(mysteryEvidence)
+        decision = decisionTree.predict(evidence)
         #printD("ServiceProcessor.runDecisionTree() - evidence: {0}".format(mysteryEvidence))
         printD("ServiceProcessor.runDecisionTree() - decision: {0}, IP: {1}".format(decision, deviceIP))
         return decision

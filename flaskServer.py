@@ -279,6 +279,7 @@ def getSummary():
         summary["TABLE"][deviceIP]["LOW_VULNS"] = 0
 
         evidence = dbManagerNew.select_all(NEW_E_DB_FILE, deviceIP)
+        print("evKeys: {0}".format(evidence.keys()))
 
         # count identified
         if "MODEL" in evidence.keys():
@@ -307,13 +308,16 @@ def getSummary():
             summary["TABLE"][deviceIP+":"+key]["MED_VULNS"] = "-"
             summary["TABLE"][deviceIP+":"+key]["LOW_VULNS"] = "-"
 
-
         # count vulns
         if "VULNERABILITIES" in evidence.keys():
+            print("***** VULNS *****")
+            print("***** VULNS *****")
+            print("***** VULNS *****")
             for vulnerabilityID in evidence["VULNERABILITIES"]:
                 summary["AGGREGATE"]["TOTAL_VULNERABILITIES"] = summary["AGGREGATE"]["TOTAL_VULNERABILITIES"] + 1
-                #vulnerability = dbManager.select(VULN_DB_FILE, vulnerabilityID)
-                vulnerability = {"SEVERITY": []}
+                vulnerability = dbManagerNew.select_all(NEW_VULN_DB_FILE, vulnerabilityID)
+                print("vuln: {0}".format(vulnerability))
+                #vulnerability = {"SEVERITY": []}
                 if helper.singleInList("high", vulnerability["SEVERITY"]):
                     summary["AGGREGATE"]["HIGH_VULNS"] = summary["AGGREGATE"]["HIGH_VULNS"] + 1
                     summary["TABLE"][deviceIP]["HIGH_VULNS"] = summary["TABLE"][deviceIP]["HIGH_VULNS"] + 1
@@ -351,8 +355,7 @@ def getDetails(deviceIP):
 
     for vulnerabilityID in details["VULNERABILITIES"]:
         details["TOTAL_VULNERABILITIES"] = details["TOTAL_VULNERABILITIES"] + 1
-        #vulnerability = dbManager.select(VULN_DB_FILE, vulnerabilityID)
-        vulnerability = {"SEVERITY": []}
+        vulnerability = dbManagerNew.select_all(NEW_VULN_DB_FILE, vulnerabilityID)
         if helper.singleInList("high", vulnerability["SEVERITY"]):
             details["HIGH_VULNS"] = details["HIGH_VULNS"] + 1
         if helper.singleInList("medium", vulnerability["SEVERITY"]):
@@ -462,13 +465,31 @@ def getTimelines(deviceIP):
     timelines["VULNERABILITY"] = {deviceIP: []}
 
     allEvents = dbManagerNew.select_timeline(NEW_EVENTS_DB_FILE, deviceIP)
-    #print("allevents: {0}".format(allEvents))
+    allEvidence = dbManagerNew.select_timeline(NEW_E_DB_FILE, deviceIP)
+    #print("allEvents: {0}".format(allEvents))
+    #print("allEvidence: {0}".format(allEvidence))
     for event in allEvents:
-        if "TYPE" in event.keys() and "IDENTIFICATION" in event["TYPE"]:
+        typeKey = helper.singleInList("TYPE", event.keys())
+        evidenceTypeKey = helper.singleInList("EVIDENCE_TYPE", event.keys())
+        if typeKey and helper.compareSingle("IDENTIFICATION", event[typeKey]):
             timelines["IDENTIFICATION"][event["TIMESTAMP"]] = event
-        if "TYPE" in event.keys() and "VULNERABILITY" in event["TYPE"]:
+        if typeKey and helper.compareSingle("VULNERABILITY", event[typeKey]):
             timelines["VULNERABILITY"][event["TIMESTAMP"]] = event
-        #timelines["IDENTIFICATION"][event["TIMESTAMP"]] = event
+        #if evidenceTypeKey and helper.compareSingle("IDENTIFICATION", event[evidenceTypeKey]):
+        #    timelines["IDENTIFICATION"][event["TIMESTAMP"]] = event
+        #if evidenceTypeKey and helper.compareSingle("VULNERABILITY", event[evidenceTypeKey]):
+        #    timelines["VULNERABILITY"][event["TIMESTAMP"]] = event
+    for event in allEvidence:
+        typeKey = helper.singleInList("TYPE", event.keys())
+        evidenceTypeKey = helper.singleInList("EVIDENCE_TYPE", event.keys())
+        if typeKey and helper.compareSingle("IDENTIFICATION", event[typeKey]):
+            timelines["IDENTIFICATION"][event["TIMESTAMP"]] = event
+        if typeKey and helper.compareSingle("VULNERABILITY", event[typeKey]):
+            timelines["VULNERABILITY"][event["TIMESTAMP"]] = event
+        #if evidenceTypeKey and helper.compareSingle("IDENTIFICATION", event[evidenceTypeKey]):
+        #    timelines["IDENTIFICATION"][event["TIMESTAMP"]] = event
+        #if evidenceTypeKey and helper.compareSingle("VULNERABILITY", event[evidenceTypeKey]):
+        #    timelines["VULNERABILITY"][event["TIMESTAMP"]] = event
 
     return timelines
 
