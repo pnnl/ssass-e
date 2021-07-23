@@ -58,6 +58,7 @@ NEW_EVENTS_DB_FILE = "new_events_db.sqlite"
 NEW_D_DB_FILE = "new_d_db.sqlite" 
 NEW_V_DB_FILE = "new_v_db.sqlite" 
 NEW_VULN_DB_FILE = "new_vuln_db.sqlite"
+NEW_R_DB_FILE = "new_r_db.sqlite"
 
 from ssasse_platform.InferenceEngine.Databases import dbManagerNew
 
@@ -231,7 +232,7 @@ def putRequest(requestVal):
                 zonemap[val].append(key)
                 updated = True
 
-        #dbManager.DBManager().insert(R_DB_FILE, requestTimeStamp, {"PINGSWEEP": ipList, "RESPONSE": ["sent"]})
+        dbManagerNew.DBManager().insert(NEW_R_DB_FILE, requestTimeStamp, {"PINGSWEEP": ipList, "RESPONSE": ["sent"]}, requestTimeStamp, "Requests")
 
         if updated:
             fw = open("{0}zonemap.json".format(scans_path), "w", encoding="utf-8")
@@ -243,11 +244,11 @@ def putRequest(requestVal):
 ##########
 def getRequests():
     requestsDict = {}
-    #allRequestTimeStamps = dbManagerNew.allIPs(R_DB_FILE)
-    #for requestTimeStamp in allRequestTimeStamps:
-    #    request = dbManager.select(R_DB_FILE, requestTimeStamp)
-    #    if "RESPONSE" not in request:
-    #        requestsDict[requestTimeStamp] = request
+    allRequestTimeStamps = dbManagerNew.allIPs(NEW_R_DB_FILE)
+    for requestTimeStamp in allRequestTimeStamps:
+        request = dbManagerNew.select_all(NEW_R_DB_FILE, requestTimeStamp)
+        if "RESPONSE" not in request:
+            requestsDict[requestTimeStamp] = request
     return requestsDict
 
 ##########
@@ -461,8 +462,8 @@ def getCharts(deviceIP, evidence):
 ##########
 def getTimelines(deviceIP):
     timelines = {}
-    timelines["IDENTIFICATION"] = {deviceIP: []}
-    timelines["VULNERABILITY"] = {deviceIP: []}
+    timelines["IDENTIFICATION"] = {}
+    timelines["VULNERABILITY"] = {}
 
     allEvents = dbManagerNew.select_timeline(NEW_EVENTS_DB_FILE, deviceIP)
     allEvidence = dbManagerNew.select_timeline(NEW_E_DB_FILE, deviceIP)

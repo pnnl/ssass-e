@@ -55,6 +55,7 @@ NEW_EVENTS_DB_FILE = "new_events_db.sqlite" # new events
 NEW_D_DB_FILE = "new_d_db.sqlite" # new devices
 NEW_V_DB_FILE = "new_v_db.sqlite" # new vendors
 NEW_VULN_DB_FILE = "new_vuln_db.sqlite" # new vulns
+NEW_R_DB_FILE = "new_r_db.sqlite" # new requests
 
 DBManagerNew = dbManagerNew.DBManager()
 
@@ -63,6 +64,7 @@ DBManagerNew.create(NEW_EVENTS_DB_FILE)
 DBManagerNew.create(NEW_D_DB_FILE)
 DBManagerNew.create(NEW_V_DB_FILE)
 DBManagerNew.create(NEW_VULN_DB_FILE)
+DBManagerNew.create(NEW_R_DB_FILE)
 
 # Load vendor profiles from .json file, insert into NEW_V_DB
 for file in os.listdir(profiles_path+"Vendors/"):

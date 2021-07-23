@@ -98,6 +98,7 @@ NEW_E_DB_FILE = "new_e_db.sqlite" # new evidence
 NEW_EVENTS_DB_FILE = "new_events_db.sqlite" # new events
 NEW_D_DB_FILE = "new_d_db.sqlite" # devices
 NEW_V_DB_FILE = "new_v_db.sqlite" # vendors
+NEW_R_DB_FILE = "new_r_db.sqlite" # requests
 
 # Ignore IP List
 IGNORE_IPS = []
@@ -400,12 +401,12 @@ class DeviceIdentificationEngine(Actor):
             self.getFromVulnQueue()
             
             userInput = self.checkForPingSweepUserInput()
-            if userInput and False:
+            if userInput:
                 printD("PING: Sending ping sweep: {}".format(userInput))
                 self.ping_sweep_handler(userInput)
 
             currentTime = time.time()
-            if currentTime - peekScanTime >= 30 and False:
+            if currentTime - peekScanTime >= 30:
                 printD("PING: Checking for ExternalIPs")
                 devices = self.checkForExternalIPs()
                 printD("PING: Device list from checkForExternalIPs: {}".format(devices))
@@ -418,7 +419,7 @@ class DeviceIdentificationEngine(Actor):
                     requestTimeStamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
                     requestDict = {}
                     requestDict["MESSAGE"] = ["PING: Device list from checkForExternalIPs: {}".format(devices)]
-                    #self.DBManager.insert(R_DB_FILE, requestTimeStamp, requestDict)
+                    self.DBManagerNew.insert(NEW_R_DB_FILE, requestTimeStamp, requestDict, requestTimeStamp, "Requests")
 
     ##########################################################
     # processIdentification()
@@ -472,22 +473,27 @@ class DeviceIdentificationEngine(Actor):
                 printD("PING: ipAddr: {0} not in ipNetwk: {1}".format(ipAddr, ipNetwk))
                 self.ping_sweep_processed.add(ipAddr)
                 externalDevices.append(device)
+            #else:
+                #printD("PING: ipAddr: {0} in ipNetwk: {1}".format(ipAddr, ipNetwk))
         return externalDevices
 
     # TODO: handle communication between ssass-e and webpage for user input/requests/actions
     def checkForPingSweepUserInput(self):
-        #allRequestTimeStamps = dbManager.allIdentifiers(R_DB_FILE)
-        #for requestTimeStamp in allRequestTimeStamps:
-        #    requestDict = dbManager.select(R_DB_FILE, requestTimeStamp)
-        #    if "DONE" not in requestDict and "PINGSWEEP" in requestDict:
-        #        printD("geventLoop() Ping sweep timestamp: {0}, response: {1}".format(requestTimeStamp, requestDict["PINGSWEEP"]))
-        #        self.DBManager.insert(R_DB_FILE, requestTimeStamp, {"DONE": ["Y"]})
-        #        return requestDict["PINGSWEEP"]
+        allRequestTimeStamps = dbManagerNew.allIPs(NEW_R_DB_FILE)
+        for requestTimeStamp in allRequestTimeStamps:
+            requestDict = dbManagerNew.select_all(NEW_R_DB_FILE, requestTimeStamp)
+            if "DONE" not in requestDict and "PINGSWEEP" in requestDict:
+                printD("PING: geventLoop() Ping sweep timestamp: {0}, response: {1}".format(requestTimeStamp, requestDict["PINGSWEEP"]))
+                self.DBManagerNew.insert(NEW_R_DB_FILE, requestTimeStamp, {"DONE": ["Y"]}, requestTimeStamp, "Requests")
+                return requestDict["PINGSWEEP"]
+            #else:
+                #printD("PING: User input skipped {0}".format(requestDict))
         return None
 
     def ping_sweep_handler(self, ipRangeList):
         #targetPorts = '21-23,80,443,502,20000'
 
+        printD("PING: doing sweep on {0}".format(ipRangeList))
         for ipRange in ipRangeList:
             # Check if input format is correct
             runScan = True
