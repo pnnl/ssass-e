@@ -366,8 +366,7 @@ def getDetails(deviceIP):
 
     print("got vuln counts")
 
-    #details["CHARTS"] = getCharts(deviceIP, evidence)
-    details["CHARTS"] = {}
+    details["CHARTS"] = getCharts(deviceIP, evidence)
     details["TIMELINES"] = getTimelines(deviceIP)
     print("got timelines")
     return details

@@ -34,6 +34,8 @@
 #
 # }}}
 
+import os
+import sys
 from datetime import time
 import datetime
 import sqlite3
@@ -150,7 +152,7 @@ class DBManager():
             for key,value in attributeDict.items():
                 #key = helper.sanitizeKey(key)
 
-                if type(value) == str:
+                if isinstance(value,str):
                     #value = helper.sanitizeVal(value)
                         
                     # check if individual evidence piece is in all_evidence
@@ -172,7 +174,7 @@ class DBManager():
                         if value not in allEvidenceDictAfter[key]:
                             allEvidenceDictAfter[key].append(value)
 
-                elif type(value) == list:
+                elif isinstance(value, list):
                     for val in value:
                         #val = helper.sanitizeVal(val)
                         
@@ -195,10 +197,10 @@ class DBManager():
                             if val not in allEvidenceDictAfter[key]:
                                 allEvidenceDictAfter[key].append(val)
 
-            if newEvidenceDict != {}:
+            if newEvidenceDict:
                 longestList = 0
                 for key,val in attributeDict.items():
-                    if type(val) == list:
+                    if isinstance(val, list):
                         if len(val) > longestList:
                             longestList = len(val)
                     else:
@@ -208,7 +210,7 @@ class DBManager():
                 while i < longestList:
                     attributeDictIndividual = {}
                     for key,val in attributeDict.items():
-                        if type(val) == list:
+                        if isinstance(val, list):
                             if len(val) >= i + 1:
                                 attributeDictIndividual[key] = val[i]
                         else:
