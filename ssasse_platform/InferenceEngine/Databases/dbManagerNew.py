@@ -50,6 +50,7 @@ unique_columns = ["ACTIVE_SCAN_TIME", "PROCESSING"]
 import logging
 logger = logging.getLogger(__name__)
 DEBUG = True
+OVERWRITE_ON_CREATE = True
 def printD(m):
     if DEBUG:
         logger.debug(m)
@@ -73,9 +74,9 @@ class DBManager():
         try:
             # wipe file
             #printD("dbManager - creating db file from scratch: {0}".format(sqlite_file))
-            f = open("{0}{1}".format(sqlite_path,sqlite_file), "w+")
-            f.close()
-
+            if OVERWRITE_ON_CREATE or not os.path.exists("{0}{1}".format(sqlite_path,sqlite_file)):
+                f = open("{0}{1}".format(sqlite_path,sqlite_file), "w+")
+                f.close()
             conn = sqlite3.connect("{0}{1}".format(sqlite_path,sqlite_file))
             c = conn.cursor()
 
