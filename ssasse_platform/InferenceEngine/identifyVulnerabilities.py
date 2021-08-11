@@ -53,7 +53,7 @@ import datetime
 
 from ssasse_platform.InferenceEngine.baseProcessEvidence import BaseMysteryEvidenceProcessor
 
-from .Databases import dbManager
+from .Databases import dbManagerNew
 #from . import service_decision_tree
 from ssasse_platform.InferenceEngine.serviceDecisionTree import ServicesDecisionTree
 from . import helper
@@ -66,11 +66,11 @@ def printD(m):
         logger.debug(m)
 
 # Database files
-E_DB_FILE = "e_db.sqlite" # evidence
-D_DB_FILE = "d_db.sqlite" # devices
-V_DB_FILE = "v_db.sqlite" # vendors
-VULN_DB_FILE = "vuln_db.sqlite" # vulnerabilities
-EVENTS_DB_FILE = "events_db.sqlite" # events
+NEW_E_DB_FILE = "new_e_db.sqlite" # new evidence
+NEW_EVENTS_DB_FILE = "new_events_db.sqlite" # new events
+NEW_D_DB_FILE = "new_d_db.sqlite" # new devices
+NEW_V_DB_FILE = "new_v_db.sqlite" # new vendors
+NEW_VULN_DB_FILE = "new_vuln_db.sqlite" # new vulnerabilities
 
 # Paths
 database_path = "ssasse_platform/InferenceEngine/Databases/"
@@ -154,9 +154,9 @@ vulnerability_decisions = ["SERVICE_NOT_RUNNING", "SERVICE_IS_RUNNING", "ANONYMO
 "DNP3_SINGLE_MASTER_ACCESS"]
 
 class ServiceProcessor(BaseMysteryEvidenceProcessor):
-    def __init__(self, config, DBManager, rmq_connection):
+    def __init__(self, config, DBManagerNew, rmq_connection):
         printD("ServiceProcessor.__init__()")
-        super(ServiceProcessor, self).__init__(config, DBManager, rmq_connection)
+        super(ServiceProcessor, self).__init__(config, DBManagerNew, rmq_connection)
         self.port = None
         self.processingServices = {}
         self.identifiedVulnerabilities = {}
@@ -168,8 +168,9 @@ class ServiceProcessor(BaseMysteryEvidenceProcessor):
     # getScanParams
     # fill scan object with params from evidence and return
     ##########################################################
-    def getScanParams(self, scan, mysteryDevice, mysteryEvidence, **kwargs):
+    def getScanParams(self, scan, mysteryDevice, **kwargs):
         port = kwargs['port']
+        mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, mysteryDevice)
 
         for param in scan["PARAMS"].keys():
             if param == 'TARGET_IPADDR':
@@ -222,46 +223,26 @@ class ServiceProcessor(BaseMysteryEvidenceProcessor):
                 event["SIGNATURE"] = [scan["PARAMS"]["SCAN_NAME"]]
                 event["STATUS"] = ["Failed"]
                 event["INFO"] = ["Could not grab params for scan {0} from IP {1} evidence.".format(scan["PARAMS"]["SCAN_NAME"], mysteryDevice)]
-                self.DBManager.insert(EVENTS_DB_FILE, eventTimestamp, event)
+                self.DBManagerNew.insert(NEW_EVENTS_DB_FILE, mysteryDevice, event, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Vulnerability")
 
                 scan = "NA"
                 break
         printD("Scan parameters: {}".format(scan))
         return scan
-
-    ##########################################################
-    # checkSent()
-    # Check sent requests to see if it was already sent
-    ##########################################################
-#    def checkSent(self, mysteryDevice, scanName):
-        #printD("BaseMysteryEvidenceProcessor.checkSent()")
-#        scanSent = False
-
-        #mysteryEvidence = dbManager.select(E_DB_FILE, mysteryDevice)
-#        if helper.singleInList(scanName, self.activeScansSent) != False:
-#            scanSent = True
-
-#        if scanSent == True:
-#            printD("ProcessIPEngine.checkSent() - ERROR: scan {0} already sent for {1}".format(scanName, mysteryDevice))
-            
-            #self.publishLock.acquire()
-#            self.publish_internal("internal", {"TARGET_IPADDR": mysteryDevice, scanName: "Yes"})
-            #self.publishLock.release()
-
-#        return scanSent
     
     ##########################################################
     # determineScan()
     # this is the function that gets called in order to determine what unknown data would be impactful for the inference operation. 
     # This data will then be used to determine which scan should be fired off. 
     ##########################################################
-    def determineScan(self, deviceIP, mysteryEvidence, **kwargs):
+    def determineScan(self, deviceIP, **kwargs):
         port = kwargs['port']
+        mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, deviceIP)
         #self.counter += 1
         #printD("New evidence to determineScan: {}".format(mysteryEvidence))
         evidence = {}
         if self.nmap is not None and self.nmap == "done":
-            evidence = self.prepareEvidence(deviceIP, port, mysteryEvidence)
+            evidence = self.prepareEvidence(deviceIP, port)
         scan = "NA"
 
         printD("SN: Prepared evidence for decision tree: {}, self.nmap: {}".format(evidence, self.nmap))
@@ -269,41 +250,44 @@ class ServiceProcessor(BaseMysteryEvidenceProcessor):
         decision = self.runDecisionTree(deviceIP, evidence)
         printD("SN: Prepared service decision tree decision: {}, {}, {}, {}".format(deviceIP, port, decision, type(decision)))
         
-        if decision not in ["nmap_service_scan", "PORT_NOT_OPEN"]:
+        if not helper.singleInList(decision, ["nmap_service_scan", "PORT_NOT_OPEN"]):
             vulnDict = vulnerabilityIDMapping["PORT_OPEN"]
             vulnDict["DESCRIPTION"] = vulnDict["DESCRIPTION"].format(self.service, port)
-            self.DBManager.insertVulnerabilityTableEntry(E_DB_FILE, VULN_DB_FILE, deviceIP, vulnDict)
+            print("INSERTING VULN {0} {1}".format(deviceIP, vulnDict))
+            self.DBManagerNew.insertVulnerabilityTableEntry(NEW_E_DB_FILE, NEW_VULN_DB_FILE, deviceIP, vulnDict)
 
         # valid scan actions, 
-        if decision in ["nmap_service_scan", "FTP_default_cred_Check", "TELNET_default_cred_Check", "HTTP_default_credential_Check", "dnp3_request_link_status"]:
+        if helper.singleInList(decision, ["nmap_service_scan", "FTP_default_cred_Check", "TELNET_default_cred_Check", "HTTP_default_credential_Check", "dnp3_request_link_status"]):
             allowed = self.checkPolicy(deviceIP, decision)
-            if allowed and "VENDOR" in mysteryEvidence:
-                scan = self.getScan(decision, deviceIP, mysteryEvidence, **kwargs)
+            if allowed and helper.singleInList("VENDOR", mysteryEvidence):
+                scan = self.getScan(decision, deviceIP, **kwargs)
                 scan["PARAMS"]["SCAN_NAME"] = decision 
 #                printD("SN: getScan: {}".format(scan))
             else:
                 scan = "NA"
 
             if scan != "NA":
-                scan = self.getScanParams(scan, deviceIP, mysteryEvidence, **kwargs)
+                scan = self.getScanParams(scan, deviceIP, **kwargs)
             else:
                 #self.publish_internal("internal", {"TARGET_IPADDR": deviceIP, decision: "No"})
                 self.resultsDict["internal"].append({"TARGET_IPADDR": deviceIP, decision: "No"})
 
             if scan != "NA":
-                sent = self.checkSent(deviceIP, mysteryEvidence, scan["PARAMS"]["SCAN_NAME"])
+                sent = self.checkSent(deviceIP, scan["PARAMS"]["SCAN_NAME"])
                 printD("SN: checkSent {}".format(sent))
 
                 if sent:
                     scan = "NA"
-        elif decision in ["PORT_NOT_OPEN"]:
+
+        elif helper.singleInList(decision, ["PORT_NOT_OPEN"]):
             self.identified = "y"
             
             vulnDict = vulnerabilityIDMapping[decision]
             vulnDict["DESCRIPTION"] = vulnDict["DESCRIPTION"].format(self.service, port)
-            self.DBManager.insertVulnerabilityTableEntry(E_DB_FILE, VULN_DB_FILE, deviceIP, vulnDict)
+            printD("INSERTING VULN {0} {1}".format(deviceIP, vulnDict))
+            self.DBManagerNew.insertVulnerabilityTableEntry(NEW_E_DB_FILE, NEW_VULN_DB_FILE, deviceIP, vulnDict)
 
-        elif decision in vulnerability_decisions:
+        elif helper.singleInList(decision, vulnerability_decisions):
             if evidence["SERVICE_RUNNING"] == "dnp":
                 if decision == "DEFAULT_ACCESS":
                     decision = "DNP3_ALL_MASTER_ACCESS"
@@ -318,7 +302,8 @@ class ServiceProcessor(BaseMysteryEvidenceProcessor):
             
             vulnDict = vulnerabilityIDMapping[decision]
             vulnDict["DESCRIPTION"] = vulnDict["DESCRIPTION"].format(service, port)
-            self.DBManager.insertVulnerabilityTableEntry(E_DB_FILE, VULN_DB_FILE, deviceIP, vulnDict)
+            printD("INSERTING VULN {0} {1}".format(deviceIP, vulnDict))
+            self.DBManagerNew.insertVulnerabilityTableEntry(NEW_E_DB_FILE, NEW_VULN_DB_FILE, deviceIP, vulnDict)
 
         #Error
         elif decision == "NA":
@@ -333,7 +318,8 @@ class ServiceProcessor(BaseMysteryEvidenceProcessor):
             event["SIGNATURE"] = ["{} on port {}".format(scan["PARAMS"]["SCAN_NAME"], port)]
             event["STATUS"] = ["Sent"]
             event["INFO"] = ["Awaiting response."]
-            self.DBManager.insert(EVENTS_DB_FILE, eventTimestamp, event)
+            self.DBManagerNew.insert(NEW_EVENTS_DB_FILE, deviceIP, event, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Vulnerability")
+            
             #self.publish_internal("internal", {"TARGET_IPADDR": deviceIP, decision: "Yes"})
             self.resultsDict["internal"].append({"TARGET_IPADDR": deviceIP, decision: "yes"})
 
@@ -344,12 +330,13 @@ class ServiceProcessor(BaseMysteryEvidenceProcessor):
     # prepareEvidence
     # prepare evidence based on port evidence
     ##########################################################
-    def prepareEvidence(self, deviceIP, devicePort, mysteryEvidence):
+    def prepareEvidence(self, deviceIP, devicePort):
         evidence = {}
         port_state = 'PORTS_' + devicePort + '_PORT_STATE'
         service_name = 'PORTS_' + devicePort + '_SERVICE_NAME'
         anon = None
         default_creds = None
+        mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, deviceIP)
         
         printD("prepareEvidence for : port: {}, port: {}, evidence:{}".format(deviceIP, devicePort, mysteryEvidence))
 
@@ -418,11 +405,12 @@ class ServiceProcessor(BaseMysteryEvidenceProcessor):
     # Calls decision tree to receive an action name based on 
     # evidence/profile
     ##########################################################
-    def runDecisionTree(self, deviceIP, mysteryEvidence):
+    def runDecisionTree(self, deviceIP, evidence):
         training_table_path = ''
         profiles = {}
+        #mysteryEvidence = dbManagerNew.select_all(NEW_E_DB_FILE, deviceIP)
         decisionTree = ServicesDecisionTree(profiles, training_table_path)
-        decision = decisionTree.predict(mysteryEvidence)
+        decision = decisionTree.predict(evidence)
         #printD("ServiceProcessor.runDecisionTree() - evidence: {0}".format(mysteryEvidence))
         printD("ServiceProcessor.runDecisionTree() - decision: {0}, IP: {1}".format(decision, deviceIP))
         return decision
@@ -444,11 +432,10 @@ class ServiceProcessor(BaseMysteryEvidenceProcessor):
         self.nmap = resultsDict['nmap']
 
         printD("SN: BEFORE processService infer method: {}".format(self.identified))
-        # pull FULL evidence for device
-        mysteryEvidence = dbManager.select(E_DB_FILE, deviceIP)
+        
         # run inference
         printD("SN: processService: {}, {}, {}".format(deviceIP, devicePort, service))
-        self.infer(deviceIP, mysteryEvidence, devicePort)
+        self.infer(deviceIP, devicePort)
         
 #        resultsDict["activeScanTime"] = self.activeScanTime
 #        resultsDict["activeScansSent"] = self.activeScansSent
@@ -473,11 +460,9 @@ class ServiceProcessor(BaseMysteryEvidenceProcessor):
         if resultsDict['nmap'] == 'yes':
             self.nmap = 'yes'
 
-        # pull FULL evidence for device
-        mysteryEvidence = dbManager.select(E_DB_FILE, deviceIP)
         printD("SN: processNmap: deviceIP: {}, ports: {}".format(deviceIP, ports))
 
-        self.infer(deviceIP, mysteryEvidence, ports)
+        self.infer(deviceIP, ports)
 
         resultsDict['nmap'] = 'done'
         self.nmap = 'done'
@@ -489,8 +474,6 @@ class ServiceProcessor(BaseMysteryEvidenceProcessor):
         return resultsDict
 
     def requestScan(self, mysteryDevice, scan, siteName):
-        printD("baseProcessEvidence.requestScan() - ip: {0}, sending request: {1}, {2}, sentScans: {3}".format(mysteryDevice, scan["PARAMS"], siteName, dbManager.select(E_DB_FILE, mysteryDevice).get("ACTIVE_SCANS_SENT", [])))
-        self.DBManager.insert(E_DB_FILE, mysteryDevice, {"ACTIVE_SCANS_SENT": [scan["PARAMS"]["SCAN_NAME"]]})
-        #self.publish_request("active.requests.{0}".format(siteName), scan["PARAMS"])
+        printD("baseProcessEvidence.requestScan() - ip: {0}, sending request: {1}, {2}, sentScans: {3}".format(mysteryDevice, scan["PARAMS"], siteName, dbManagerNew.select_all(NEW_EVENTS_DB_FILE, mysteryDevice).get("ACTIVE_SCANS_SENT", [])))        
+        self.DBManagerNew.insert(NEW_EVENTS_DB_FILE, mysteryDevice, {"ACTIVE_SCANS_SENT": [scan["PARAMS"]["SCAN_NAME"]]}, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "Vulnerability")
         self.resultsDict["external"].append({"ACTIVE_REQUEST_STRING": "active.requests.{0}".format(siteName), "SCAN": scan["PARAMS"]})
-

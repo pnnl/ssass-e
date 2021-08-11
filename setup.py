@@ -39,13 +39,10 @@ if sys.version_info[0] >= 3:
     unicode = str
 
 import json
-from future.utils import viewitems
 from io import open
-from ssasse_platform.InferenceEngine.Databases import dbManager
+from ssasse_platform.InferenceEngine.Databases import dbManagerNew
 import os
-import subprocess
-
-import multiprocessing
+import datetime
 
 from ssasse_platform.InferenceEngine import helper
 
@@ -53,25 +50,23 @@ database_path = "ssasse_platform/InferenceEngine/Databases/"
 profiles_path = "ssasse_platform/InferenceEngine/Profiles/"
 
 # Create fresh databases
-E_DB_FILE = "e_db.sqlite" # evidence
-D_DB_FILE = "d_db.sqlite" # devices
-V_DB_FILE = "v_db.sqlite" # vendors
-VULN_DB_FILE = "vuln_db.sqlite" # vulnerabilities
-EVENTS_DB_FILE = "events_db.sqlite" # events
-S_DB_FILE = "s_db.sqlite" # status
-R_DB_FILE = "r_db.sqlite" # requests/notifications
+NEW_E_DB_FILE = "new_e_db.sqlite" # new evidence
+NEW_EVENTS_DB_FILE = "new_events_db.sqlite" # new events
+NEW_D_DB_FILE = "new_d_db.sqlite" # new devices
+NEW_V_DB_FILE = "new_v_db.sqlite" # new vendors
+NEW_VULN_DB_FILE = "new_vuln_db.sqlite" # new vulns
+NEW_R_DB_FILE = "new_r_db.sqlite" # new requests
 
-DBManager = dbManager.DBManager()
+DBManagerNew = dbManagerNew.DBManager()
 
-DBManager.create(E_DB_FILE)
-DBManager.create(D_DB_FILE)
-DBManager.create(V_DB_FILE)
-DBManager.create(VULN_DB_FILE)
-DBManager.create(EVENTS_DB_FILE)
-DBManager.create(S_DB_FILE)
-DBManager.create(R_DB_FILE)
+DBManagerNew.create(NEW_E_DB_FILE)
+DBManagerNew.create(NEW_EVENTS_DB_FILE)
+DBManagerNew.create(NEW_D_DB_FILE)
+DBManagerNew.create(NEW_V_DB_FILE)
+DBManagerNew.create(NEW_VULN_DB_FILE)
+DBManagerNew.create(NEW_R_DB_FILE)
 
-# Load vendor profiles from .json file, insert into V_DB
+# Load vendor profiles from .json file, insert into NEW_V_DB
 for file in os.listdir(profiles_path+"Vendors/"):
     if file.endswith(".json"):
         name = file.split(".json")[0]
@@ -84,7 +79,7 @@ for file in os.listdir(profiles_path+"Vendors/"):
         if profile != "NA":
             newProfile = helper.breakDownDict(profile)
             print("Inserting vendor profile {0}".format(name))
-            DBManager.insert(V_DB_FILE, name, newProfile)
+            DBManagerNew.insert(NEW_V_DB_FILE, name, newProfile, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "CREATION")
 
 # Devices
 for file in os.listdir(profiles_path+"Devices/"):
@@ -99,27 +94,18 @@ for file in os.listdir(profiles_path+"Devices/"):
         if profile != "NA":
             newProfile = helper.breakDownDict(profile, "", {})
             print("Inserting device profile {0}".format(name))
-            DBManager.insert(D_DB_FILE, name, newProfile)
-
-# Status
-DBManager.insert(S_DB_FILE, "ID_QUEUE", {"IP": []})
-DBManager.insert(S_DB_FILE, "VULN_QUEUE", {"IP": []})
-DBManager.insert(S_DB_FILE, "IDENTIFIED", {"IP": []})
-DBManager.insert(S_DB_FILE, "COMPLETED", {"IP": []})
-DBManager.insert(S_DB_FILE, "DECK", {"IP": []})
-
-# Requests
+            DBManagerNew.insert(NEW_D_DB_FILE, name, newProfile, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), "CREATION")
 
 # Known CVEs
 fr = open("ssasse_platform/InferenceEngine/Databases/known_cves.json", "r", encoding="utf-8")
 knownDict = json.loads(fr.read())
 fr.close()
 
-devices = dbManager.allIdentifiers(D_DB_FILE)
+devices = dbManagerNew.allIPs(NEW_D_DB_FILE)
 for device in devices:
     if device in knownDict.keys():
         for cveDict in knownDict[device]:
             #print("Inserting vuln {0} into {1}".format(cveDict,device))
-            DBManager.insertVulnerabilityTableEntry(D_DB_FILE, VULN_DB_FILE, device, cveDict)
+            DBManagerNew.insertVulnerabilityTableEntry(NEW_D_DB_FILE, NEW_VULN_DB_FILE, device, cveDict)
 
 print("inference prep done")
