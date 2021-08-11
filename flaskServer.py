@@ -206,15 +206,12 @@ def setPolicy(newPolicy):
 #
 ##########
 def putRequest(requestVal):
-    print("PUT REQUEST HERE")
     requestDict = json.loads(requestVal)
-    print(requestDict)
     requestTimeStamp = requestDict["TIMESTAMP"]
     action = requestDict["ACTION"]
 
     if action == "pingsweep":
         updated = False
-        print("in pingsweep action")
         ipList = []
         fr = open("{0}zonemap.json".format(scans_path), "r", encoding="utf-8")
         zonemap = json.loads(fr.read())
@@ -279,8 +276,7 @@ def getSummary():
         summary["TABLE"][deviceIP]["MED_VULNS"] = 0
         summary["TABLE"][deviceIP]["LOW_VULNS"] = 0
 
-        evidence = dbManagerNew.select_all(NEW_E_DB_FILE, deviceIP)
-        print("evKeys: {0}".format(evidence.keys()))
+        evidence = dbManagerNew.select_all(NEW_E_DB_FILE, deviceIP)       
 
         # count identified
         if "MODEL" in evidence.keys():
@@ -311,9 +307,6 @@ def getSummary():
 
         # count vulns
         if "VULNERABILITIES" in evidence.keys():
-            print("***** VULNS *****")
-            print("***** VULNS *****")
-            print("***** VULNS *****")
             for vulnerabilityID in evidence["VULNERABILITIES"]:
                 summary["AGGREGATE"]["TOTAL_VULNERABILITIES"] = summary["AGGREGATE"]["TOTAL_VULNERABILITIES"] + 1
                 vulnerability = dbManagerNew.select_all(NEW_VULN_DB_FILE, vulnerabilityID)
@@ -344,10 +337,8 @@ def getDetails(deviceIP):
     details["VENDOR_PROFILE"] = getVendorProfile(evidence)
 
     details["CHILDREN"] = getChildren(evidence)
-    print("got children")
 
     details["VULNERABILITIES"] = getVulnerabilities(evidence, details["DEVICE_PROFILE"], details["VENDOR_PROFILE"])
-    print("got vulns")
 
     details["TOTAL_VULNERABILITIES"] = 0
     details["HIGH_VULNS"] = 0
@@ -364,11 +355,9 @@ def getDetails(deviceIP):
         if helper.singleInList("low", vulnerability["SEVERITY"]):
             details["LOW_VULNS"] = details["LOW_VULNS"] + 1
 
-    print("got vuln counts")
-
     details["CHARTS"] = getCharts(deviceIP, evidence)
     details["TIMELINES"] = getTimelines(deviceIP)
-    print("got timelines")
+
     return details
 
 ##########
