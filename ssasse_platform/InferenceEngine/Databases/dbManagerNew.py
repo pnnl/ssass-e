@@ -74,6 +74,7 @@ class DBManager():
         try:
             # wipe file
             #printD("dbManager - creating db file from scratch: {0}".format(sqlite_file))
+            # Create file if it does not exist
             if OVERWRITE_ON_CREATE or not os.path.exists("{0}{1}".format(sqlite_path,sqlite_file)):
                 f = open("{0}{1}".format(sqlite_path,sqlite_file), "w+")
                 f.close()
@@ -137,7 +138,7 @@ class DBManager():
         try:
             newEvidenceDict = {}
 
-            # check file exists
+            # Create file if it does not exist
             f = open("{0}{1}".format(sqlite_path,sqlite_file), "a+")
             f.close()
 
@@ -268,7 +269,7 @@ def select_all(sqlite_file, ip, dictFormat=True):
     try:
         returnResult = {}
 
-        # check file exists
+        # Create file if it does not exist
         f = open("{0}{1}".format(sqlite_path,sqlite_file), "a+")
         f.close()
 
@@ -305,7 +306,7 @@ def select_timeline(sqlite_file, ip, newOnly=False, dictFormat=True):
     try:
         evidenceList = []
 
-        # check file exists
+        # Create file if it does not exist
         f = open("{0}{1}".format(sqlite_path,sqlite_file), "a+")
         f.close()
 
@@ -462,7 +463,7 @@ def select_something_timeline_where(sqlite_file, attributeListStr, whereStatemen
             if not dictFormat:
                 evidenceList.append(attributeList)
 
-        # check file exists
+        # Create file if it does not exist
         f = open("{0}{1}".format(sqlite_path,sqlite_file), "a+")
         f.close()
 
@@ -571,7 +572,7 @@ def allIPs(sqlite_file):
 
     try:
 
-        # check file exists
+        # Create file if it does not exist
         f = open("{0}{1}".format(sqlite_path,sqlite_file), "a+")
         f.close()
 
