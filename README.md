@@ -1,3 +1,8 @@
+> [!IMPORTANT]
+> This repository has been archived and is no longer maintained.
+> The code is provided for historical reference and may contain unpatched or unknown vulnerabilities.
+> It should not be used in production systems.
+
 # Safe Secure Autonomous Scanning Solution for Energy Delivery Systems (SSASSE)
 
 SSASSE tool is a device identification and vulnerability discovery tool for energy delivery systems. Our prototype tool
