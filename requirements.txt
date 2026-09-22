@@ -13,7 +13,7 @@ fuzzywuzzy==0.17.0
 pyshark==0.4.2.9
 tftpy==0.8.0
 urllib3==1.25.7
-requests==2.22.0
+requests==2.33.0
 pyTenable==1.0.0
 python-Levenshtein==0.12.0
 crccheck==0.6
